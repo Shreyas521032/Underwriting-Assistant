@@ -144,20 +144,34 @@ class UnderwritingAgent:
 class DataSummarizationAgent(UnderwritingAgent):
     def summarize_applicant(self, applicant_data):
         """Agent 1: Summarize applicant information"""
-        prompt = f"""You are an insurance underwriting assistant. Analyze and summarize the following applicant information in 2-3 concise sentences, highlighting key risk-relevant factors:
+        prompt = f"""You are an expert insurance underwriting assistant. Provide a comprehensive analysis of the following applicant:
 
-Applicant Details:
+APPLICANT PROFILE:
 - Name: {applicant_data['name']}
-- Age: {applicant_data['age']} years
+- Age: {applicant_data['age']} years old
 - Occupation: {applicant_data['occupation']}
 - Location: {applicant_data['location']}
-- Coverage Amount Requested: ${applicant_data['coverage_amount']:,}
+- Requested Coverage: ${applicant_data['coverage_amount']:,}
 - Health Status: {applicant_data['health_status']}
 - Lifestyle Factors: {applicant_data['lifestyle_factors']}
 
-Provide a professional summary focusing on risk-relevant aspects."""
+Provide a detailed professional summary with the following structure:
 
-        return self.query_llm(prompt, max_tokens=200)
+**APPLICANT OVERVIEW:**
+[2-3 sentences providing general profile overview]
+
+**KEY RISK INDICATORS:**
+• Demographic Risk: [Analyze age and occupation factors]
+• Health Risk: [Analyze health status and lifestyle]
+• Financial Exposure: [Analyze coverage amount requested]
+• Geographic Risk: [Analyze location factors]
+
+**INITIAL ASSESSMENT:**
+[1-2 sentences summarizing preliminary risk profile]
+
+Format your response with clear bullet points and bold headers as shown above."""
+
+        return self.query_llm(prompt, max_tokens=500)
 
 class ClaimsAnalysisAgent(UnderwritingAgent):
     def analyze_claims(self, claims_history):
