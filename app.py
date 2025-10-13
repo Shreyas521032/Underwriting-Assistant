@@ -210,7 +210,7 @@ class UnderwritingAgent:
             else:
                 return None
         except Exception as e:
-            st.warning(f"API call failed: {str(e)}. Using fallback logic.")
+            st.warning(f"API call failed: {str(e)}. Using Rule-based logic.")
             return None
 
 class DataSummarizationAgent(UnderwritingAgent):
@@ -853,7 +853,7 @@ def main():
         if api_key:
             st.success("✅ API Key configured - AI Mode available")
         else:
-            st.warning("⚠️ No API key - Only Fallback Mode available")
+            st.warning("⚠️ No API key - Only Rule-based Mode available")
         
         st.markdown("---")
         st.markdown("### ℹ️ About")
@@ -863,7 +863,7 @@ def main():
     tab1, tab2, tab3, tab4, tab5 = st.tabs([
         "📝 Application Form", 
         "🤖 AI Agent Analysis", 
-        "📊 Fallback Analysis",
+        "📊 Rule-based Analysis",
         "🔄 System Flow", 
         "📚 Sample Data"
     ])
@@ -941,7 +941,7 @@ def main():
             
             st.session_state.current_claims_history = claims_history
             
-            st.success("✅ Application data saved! Navigate to AI Agent Analysis or Fallback Analysis tab to proceed.")
+            st.success("✅ Application data saved! Navigate to AI Agent Analysis or Rule-based Analysis tab to proceed.")
     
     with tab2:
         st.markdown("### 🤖 AI Agent-Based Risk Analysis")
@@ -964,7 +964,7 @@ def main():
             
             if st.button("🛡️ Run AI Agent Analysis", use_container_width=True):
                 if not api_key:
-                    st.error("❌ API key required for AI Agent Analysis. Please enter your Hugging Face API key in the sidebar or use Fallback Analysis.")
+                    st.error("❌ API key required for AI Agent Analysis. Please enter your Hugging Face API key in the sidebar or use Rule-based Analysis.")
                 else:
                     with st.spinner("🔄 AI Agents processing application..."):
                         # Progress indicators
@@ -1014,7 +1014,7 @@ def main():
                     st.rerun()
     
     with tab3:
-        st.markdown("### 📊 Fallback Rule-Based Analysis")
+        st.markdown("### 📊 Rule-Based Analysis")
         st.info("This mode uses deterministic rule-based logic for risk assessment. No API key required.")
         
         if st.session_state.current_applicant_data is None:
@@ -1032,25 +1032,25 @@ def main():
             
             st.markdown("---")
             
-            if st.button("📊 Run Fallback Analysis", use_container_width=True):
-                with st.spinner("🔄 Fallback agents processing application..."):
+            if st.button("📊 Run Rule-based Analysis", use_container_width=True):
+                with st.spinner("🔄 Rule-based agents processing application..."):
                     # Progress indicators
                     progress_bar = st.progress(0)
                     status_text = st.empty()
                     
-                    status_text.text("📊 Fallback Agent 1: Summarizing applicant data...")
+                    status_text.text("📊 Rule-based Agent 1: Summarizing applicant data...")
                     progress_bar.progress(25)
                     time.sleep(0.5)
                     
-                    status_text.text("📊 Fallback Agent 2: Analyzing claims history...")
+                    status_text.text("📊 Rule-based Agent 2: Analyzing claims history...")
                     progress_bar.progress(50)
                     time.sleep(0.5)
                     
-                    status_text.text("📊 Fallback Agent 3: Identifying risk factors...")
+                    status_text.text("📊 Rule-based Agent 3: Identifying risk factors...")
                     progress_bar.progress(75)
                     time.sleep(0.5)
                     
-                    status_text.text("📊 Fallback Agent 4: Generating recommendations...")
+                    status_text.text("📊 Rule-based Agent 4: Generating recommendations...")
                     progress_bar.progress(90)
                     
                     results = analyze_with_fallback(
@@ -1063,18 +1063,18 @@ def main():
                     st.session_state.fallback_agent_outputs = results['agent_outputs']
                     
                     progress_bar.progress(100)
-                    status_text.text("✅ Fallback analysis complete!")
+                    status_text.text("✅ Rule-based analysis complete!")
                     time.sleep(0.5)
                     
-                    st.success("✅ Fallback analysis complete! Results displayed below.")
+                    st.success("✅ Rule-based analysis complete! Results displayed below.")
             
             # Display results if available
             if st.session_state.fallback_analysis_results:
                 st.markdown("---")
-                st.markdown("### 🎯 Fallback Analysis Results")
+                st.markdown("### 🎯 Rule-based Analysis Results")
                 display_analysis_results(st.session_state.fallback_analysis_results, "fallback")
                 
-                if st.button("🔄 Clear Fallback Results", use_container_width=True):
+                if st.button("🔄 Clear Rule-based Results", use_container_width=True):
                     st.session_state.fallback_analysis_results = None
                     st.session_state.fallback_agent_outputs = {}
                     st.rerun()
@@ -1219,7 +1219,7 @@ def main():
                 <li>All agent outputs (summaries, analyses, recommendations)</li>
                 <li>Supporting data (claims total, amounts)</li>
                 <li>Timestamp and metadata</li>
-                <li>Analysis mode (AI or Fallback)</li>
+                <li>Analysis mode (AI or Rule-based)</li>
             </ul>
             <p><strong>Delivery:</strong> Dashboard display + downloadable reports</p>
         </div>
@@ -1244,7 +1244,7 @@ def main():
         
         with col2:
             st.markdown("""
-            #### 📊 Fallback Mode
+            #### 📊 Rule-based Mode
             - **Rule-Based:** Deterministic logic
             - **No API Dependency:** Works without external services
             - **Fast Processing:** Immediate results
@@ -1317,7 +1317,7 @@ Expected Recommendation: MANUAL REVIEW REQUIRED
         2. Include detailed claims history if applicable
         3. Ensure external reports are up-to-date
         4. Save application data before running analysis
-        5. Compare results between AI and Fallback modes
+        5. Compare results between AI and Rule-based modes
         
         **API Key Setup (for AI Mode):**
         - Get free API key from: https://huggingface.co/settings/tokens
@@ -1326,7 +1326,7 @@ Expected Recommendation: MANUAL REVIEW REQUIRED
         
         **Mode Comparison:**
         - **AI Mode:** Better for nuanced, context-aware analysis
-        - **Fallback Mode:** Better for consistent, transparent decisions
+        - **Rule-based Mode:** Better for consistent, transparent decisions
         - Try both modes to compare results!
         """)
         
@@ -1350,7 +1350,7 @@ Expected Recommendation: MANUAL REVIEW REQUIRED
             - Hugging Face API
             - Mixtral-8x7B LLM
             - Prompt Engineering
-            - Rule-based fallback
+            - Rule-based Rule-based
             """)
         
         with col3:
@@ -1380,14 +1380,14 @@ Expected Recommendation: MANUAL REVIEW REQUIRED
            - View LLM-powered analysis results
            - Download reports if needed
         
-        3. **📊 Fallback Analysis Tab** (always available)
+        3. **📊 Rule-based Analysis Tab** (always available)
            - Review saved application summary
-           - Click "Run Fallback Analysis"
+           - Click "Run Rule-based Analysis"
            - View rule-based analysis results
            - Download reports if needed
         
         4. **Compare Results**
-           - Analyze differences between AI and Fallback modes
+           - Analyze differences between AI and Rule-based modes
            - Consider both perspectives for final decision
            - Export reports for documentation
         """)
