@@ -686,8 +686,7 @@ def main():
     
     # Sidebar
     with st.sidebar:
-        st.image("https://via.placeholder.com/300x100/667eea/ffffff?text=Insurance+Co", use_container_width=True)
-        st.markdown("### 🤖 AI Agents")
+        st.markdown("### 🛡️ AI Agents")
         st.markdown("""
         1. **Data Summarization Agent**
            - Extracts key applicant info
@@ -783,7 +782,7 @@ def main():
         col1, col2 = st.columns(2)
         
         with col1:
-            if st.button("🤖 Analyze with AI Agents", use_container_width=True):
+            if st.button("🛡️ Analyze with AI Agents", use_container_width=True):
                 api_key_provided = True
                 try:
                     api_key_check = st.secrets.get("HUGGINGFACE_API_KEY", "")
@@ -818,19 +817,19 @@ def main():
                     progress_bar = st.progress(0)
                     status_text = st.empty()
                     
-                    status_text.text("🤖 Agent 1: Summarizing applicant data...")
+                    status_text.text("🛡️ Agent 1: Summarizing applicant data...")
                     progress_bar.progress(25)
                     time.sleep(0.5)
                     
-                    status_text.text("🤖 Agent 2: Analyzing claims history...")
+                    status_text.text("🛡️ Agent 2: Analyzing claims history...")
                     progress_bar.progress(50)
                     time.sleep(0.5)
                     
-                    status_text.text("🤖 Agent 3: Identifying risk factors...")
+                    status_text.text("🛡️ Agent 3: Identifying risk factors...")
                     progress_bar.progress(75)
                     time.sleep(0.5)
                     
-                    status_text.text("🤖 Agent 4: Generating recommendations...")
+                    status_text.text("🛡️ Agent 4: Generating recommendations...")
                     progress_bar.progress(90)
                     
                     results = analyze_with_agents(applicant_data, claims_history, external_reports, api_key_check)
@@ -905,7 +904,7 @@ def main():
             # Analysis Mode Badge
             mode = st.session_state.analysis_mode or "Unknown"
             if "AI" in mode:
-                st.markdown(f'<span class="mode-badge mode-ai">🤖 {mode}</span>', unsafe_allow_html=True)
+                st.markdown(f'<span class="mode-badge mode-ai">🛡️ {mode}</span>', unsafe_allow_html=True)
             else:
                 st.markdown(f'<span class="mode-badge mode-fallback">📊 {mode}</span>', unsafe_allow_html=True)
             
@@ -942,7 +941,7 @@ def main():
             st.markdown("---")
             
             # AI Agent Outputs
-            st.markdown("### 🤖 Agent Analysis Results")
+            st.markdown("### 🛡️ Agent Analysis Results")
             
             agent_outputs = results['agent_outputs']
             
@@ -1057,7 +1056,7 @@ def main():
         
         st.markdown("""
         <div class="flow-step">
-            <h3>🤖 Step 2: Agent 1 - Data Summarization</h3>
+            <h3>🛡️ Step 2: Agent 1 - Data Summarization</h3>
             <p><strong>Agent:</strong> Data Summarization Agent (LLM-powered)</p>
             <p><strong>Task:</strong> Extract and summarize key applicant information</p>
             <p><strong>Prompt Engineering:</strong></p>
@@ -1074,7 +1073,7 @@ def main():
         
         st.markdown("""
         <div class="flow-step">
-            <h3>🤖 Step 3: Agent 2 - Claims Analysis</h3>
+            <h3>🛡️ Step 3: Agent 2 - Claims Analysis</h3>
             <p><strong>Agent:</strong> Claims Analysis Agent (LLM-powered)</p>
             <p><strong>Task:</strong> Analyze historical claims patterns</p>
             <p><strong>Analysis:</strong></p>
@@ -1092,7 +1091,7 @@ def main():
         
         st.markdown("""
         <div class="flow-step">
-            <h3>🤖 Step 4: Agent 3 - Risk Factor Identification</h3>
+            <h3>🛡️ Step 4: Agent 3 - Risk Factor Identification</h3>
             <p><strong>Agent:</strong> Risk Factor Identification Agent (LLM-powered)</p>
             <p><strong>Task:</strong> Identify and prioritize key risk factors</p>
             <p><strong>Risk Categories:</strong></p>
@@ -1136,7 +1135,7 @@ def main():
         
         st.markdown("""
         <div class="flow-step">
-            <h3>🤖 Step 6: Agent 4 - Recommendation Generation</h3>
+            <h3>🛡️ Step 6: Agent 4 - Recommendation Generation</h3>
             <p><strong>Agent:</strong> Recommendation Agent (LLM-powered)</p>
             <p><strong>Task:</strong> Generate actionable underwriting decision</p>
             <p><strong>Decision Framework:</strong></p>
