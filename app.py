@@ -111,14 +111,20 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # Initialize session state
-if 'analysis_results' not in st.session_state:
-    st.session_state.analysis_results = None
-if 'agent_outputs' not in st.session_state:
-    st.session_state.agent_outputs = {}
-if 'analysis_mode' not in st.session_state:
-    st.session_state.analysis_mode = None
-if 'applicant_data_current' not in st.session_state:
-    st.session_state.applicant_data_current = None
+if 'ai_analysis_results' not in st.session_state:
+    st.session_state.ai_analysis_results = None
+if 'fallback_analysis_results' not in st.session_state:
+    st.session_state.fallback_analysis_results = None
+if 'ai_agent_outputs' not in st.session_state:
+    st.session_state.ai_agent_outputs = {}
+if 'fallback_agent_outputs' not in st.session_state:
+    st.session_state.fallback_agent_outputs = {}
+if 'current_applicant_data' not in st.session_state:
+    st.session_state.current_applicant_data = None
+if 'current_claims_history' not in st.session_state:
+    st.session_state.current_claims_history = []
+if 'current_external_reports' not in st.session_state:
+    st.session_state.current_external_reports = {}
 
 # Comprehensive occupation list
 OCCUPATIONS = sorted([
@@ -507,7 +513,7 @@ def calculate_risk_score(applicant_data, claims_history, external_reports):
     
     return risk_score, risk_category, color_class
 
-def analyze_with_agents(applicant_data, claims_history, external_reports, api_key):
+def analyze_with_ai_agents(applicant_data, claims_history, external_reports, api_key):
     """Orchestrate multi-agent analysis - AI Mode"""
     
     # Initialize agents
@@ -516,39 +522,40 @@ def analyze_with_agents(applicant_data, claims_history, external_reports, api_ke
     risk_agent = RiskFactorAgent(api_key)
     rec_agent = RecommendationAgent(api_key)
     
+    agent_outputs = {}
+    
     # Agent 1: Summarize applicant
     summary = data_agent.summarize_applicant(applicant_data)
-    st.session_state.agent_outputs['applicant_summary'] = summary if summary else data_agent.fallback_summarize(applicant_data)
+    agent_outputs['applicant_summary'] = summary if summary else data_agent.fallback_summarize(applicant_data)
     time.sleep(0.5)
     
     # Agent 2: Analyze claims
     claims = claims_agent.analyze_claims(claims_history)
-    st.session_state.agent_outputs['claims_analysis'] = claims if claims else claims_agent.fallback_analyze_claims(claims_history)
+    agent_outputs['claims_analysis'] = claims if claims else claims_agent.fallback_analyze_claims(claims_history)
     time.sleep(0.5)
     
     # Agent 3: Identify risk factors
     risk_factors = risk_agent.identify_risk_factors(applicant_data, claims_history, external_reports)
-    st.session_state.agent_outputs['risk_factors'] = risk_factors if risk_factors else risk_agent.fallback_identify_risk_factors(applicant_data, claims_history, external_reports)
+    agent_outputs['risk_factors'] = risk_factors if risk_factors else risk_agent.fallback_identify_risk_factors(applicant_data, claims_history, external_reports)
     time.sleep(0.5)
     
     # Calculate risk score
     risk_score, risk_category, color_class = calculate_risk_score(applicant_data, claims_history, external_reports)
     
     # Agent 4: Generate recommendation
-    all_factors = f"{st.session_state.agent_outputs['applicant_summary']} {st.session_state.agent_outputs['claims_analysis']}"
+    all_factors = f"{agent_outputs['applicant_summary']} {agent_outputs['claims_analysis']}"
     recommendation = rec_agent.generate_recommendation(risk_score, risk_category, all_factors)
-    st.session_state.agent_outputs['recommendation'] = recommendation if recommendation else rec_agent.fallback_generate_recommendation(risk_score, risk_category)
-    
-    st.session_state.analysis_mode = "AI Mode"
+    agent_outputs['recommendation'] = recommendation if recommendation else rec_agent.fallback_generate_recommendation(risk_score, risk_category)
     
     # Compile results
     return {
         'risk_score': risk_score,
         'risk_category': risk_category,
         'color_class': color_class,
-        'agent_outputs': st.session_state.agent_outputs,
+        'agent_outputs': agent_outputs,
         'total_claims': len(claims_history),
-        'total_claim_amount': sum([c['amount'] for c in claims_history]) if claims_history else 0
+        'total_claim_amount': sum([c['amount'] for c in claims_history]) if claims_history else 0,
+        'mode': 'AI Mode'
     }
 
 def analyze_with_fallback(applicant_data, claims_history, external_reports):
@@ -560,37 +567,166 @@ def analyze_with_fallback(applicant_data, claims_history, external_reports):
     risk_agent = RiskFactorAgent("")
     rec_agent = RecommendationAgent("")
     
+    agent_outputs = {}
+    
     # Agent 1: Summarize applicant (Fallback)
-    st.session_state.agent_outputs['applicant_summary'] = data_agent.fallback_summarize(applicant_data)
+    agent_outputs['applicant_summary'] = data_agent.fallback_summarize(applicant_data)
     time.sleep(0.5)
     
     # Agent 2: Analyze claims (Fallback)
-    st.session_state.agent_outputs['claims_analysis'] = claims_agent.fallback_analyze_claims(claims_history)
+    agent_outputs['claims_analysis'] = claims_agent.fallback_analyze_claims(claims_history)
     time.sleep(0.5)
     
     # Agent 3: Identify risk factors (Fallback)
-    st.session_state.agent_outputs['risk_factors'] = risk_agent.fallback_identify_risk_factors(applicant_data, claims_history, external_reports)
+    agent_outputs['risk_factors'] = risk_agent.fallback_identify_risk_factors(applicant_data, claims_history, external_reports)
     time.sleep(0.5)
     
     # Calculate risk score
     risk_score, risk_category, color_class = calculate_risk_score(applicant_data, claims_history, external_reports)
     
     # Agent 4: Generate recommendation (Fallback)
-    st.session_state.agent_outputs['recommendation'] = rec_agent.fallback_generate_recommendation(risk_score, risk_category)
-    
-    st.session_state.analysis_mode = "Fallback Mode (Rule-Based)"
+    agent_outputs['recommendation'] = rec_agent.fallback_generate_recommendation(risk_score, risk_category)
     
     # Compile results
     return {
         'risk_score': risk_score,
         'risk_category': risk_category,
         'color_class': color_class,
-        'agent_outputs': st.session_state.agent_outputs,
+        'agent_outputs': agent_outputs,
         'total_claims': len(claims_history),
-        'total_claim_amount': sum([c['amount'] for c in claims_history]) if claims_history else 0
+        'total_claim_amount': sum([c['amount'] for c in claims_history]) if claims_history else 0,
+        'mode': 'Fallback Mode'
     }
 
-def generate_text_report(results, applicant_data, claims_history, external_reports, analysis_mode):
+def display_analysis_results(results, mode_type):
+    """Display analysis results for both AI and Fallback modes"""
+    
+    # Analysis Mode Badge
+    if "AI" in results['mode']:
+        st.markdown(f'<span class="mode-badge mode-ai">🛡️ {results["mode"]}</span>', unsafe_allow_html=True)
+    else:
+        st.markdown(f'<span class="mode-badge mode-fallback">📊 {results["mode"]}</span>', unsafe_allow_html=True)
+    
+    st.markdown("---")
+    
+    # Risk score display
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        st.markdown(f"""
+        <div class="metric-card {results['color_class']}">
+            <h3 style="margin:0;">Risk Score</h3>
+            <h1 style="margin:0.5rem 0;">{results['risk_score']}/100</h1>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    with col2:
+        st.markdown(f"""
+        <div class="metric-card {results['color_class']}">
+            <h3 style="margin:0;">Risk Category</h3>
+            <h1 style="margin:0.5rem 0;">{results['risk_category']}</h1>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    with col3:
+        st.markdown(f"""
+        <div class="metric-card">
+            <h3 style="margin:0;">Total Claims</h3>
+            <h1 style="margin:0.5rem 0;">{results['total_claims']}</h1>
+            <p style="margin:0;">${results['total_claim_amount']:,}</p>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    st.markdown("---")
+    
+    # AI Agent Outputs
+    st.markdown("### 🛡️ Agent Analysis Results")
+    
+    agent_outputs = results['agent_outputs']
+    
+    card_class = "fallback-card" if "Fallback" in results['mode'] else "agent-card"
+    
+    st.markdown("#### 📊 Agent 1: Applicant Summary")
+    st.markdown(f"""
+    <div class="{card_class}">
+        <h4 style="margin:0 0 0.5rem 0;">Data Summarization Agent</h4>
+        <p style="margin:0; white-space: pre-wrap;">{agent_outputs.get('applicant_summary', 'N/A')}</p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    st.markdown("#### 📋 Agent 2: Claims Analysis")
+    st.markdown(f"""
+    <div class="{card_class}">
+        <h4 style="margin:0 0 0.5rem 0;">Claims Analysis Agent</h4>
+        <p style="margin:0; white-space: pre-wrap;">{agent_outputs.get('claims_analysis', 'N/A')}</p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    st.markdown("#### ⚠️ Agent 3: Risk Factors")
+    st.markdown(f"""
+    <div class="{card_class}">
+        <h4 style="margin:0 0 0.5rem 0;">Risk Factor Identification Agent</h4>
+        <p style="margin:0; white-space: pre-wrap;">{agent_outputs.get('risk_factors', 'N/A')}</p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    st.markdown("#### 💡 Agent 4: Underwriting Recommendation")
+    st.markdown(f"""
+    <div class="{card_class}">
+        <h4 style="margin:0 0 0.5rem 0;">Recommendation Agent</h4>
+        <p style="margin:0; white-space: pre-wrap;">{agent_outputs.get('recommendation', 'N/A')}</p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Export options
+    st.markdown("---")
+    st.markdown("### 📥 Export Report")
+    
+    # Prepare data for export
+    applicant_data = st.session_state.current_applicant_data or {}
+    claims_history = st.session_state.current_claims_history or []
+    external_reports = st.session_state.current_external_reports or {}
+    
+    # Generate JSON report
+    json_report = {
+        'timestamp': datetime.now().isoformat(),
+        'analysis_mode': results['mode'],
+        'applicant': applicant_data,
+        'risk_assessment': {
+            'risk_score': results['risk_score'],
+            'risk_category': results['risk_category'],
+            'total_claims': results['total_claims'],
+            'total_claim_amount': results['total_claim_amount']
+        },
+        'agent_outputs': agent_outputs
+    }
+    
+    json_data = json.dumps(json_report, indent=2)
+    
+    # Generate text report
+    text_report = generate_text_report(results, applicant_data, claims_history, external_reports)
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.download_button(
+            label="📄 Download JSON Report",
+            data=json_data,
+            file_name=f"risk_assessment_{results['mode'].replace(' ', '_')}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json",
+            mime="application/json",
+            use_container_width=True
+        )
+    
+    with col2:
+        st.download_button(
+            label="📝 Download Text Report",
+            data=text_report,
+            file_name=f"risk_assessment_{results['mode'].replace(' ', '_')}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt",
+            mime="text/plain",
+            use_container_width=True
+        )
+
+def generate_text_report(results, applicant_data, claims_history, external_reports):
     """Generate a detailed text report"""
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     
@@ -601,8 +737,8 @@ INSURANCE UNDERWRITING RISK ASSESSMENT REPORT
 
 REPORT METADATA
 Generated: {timestamp}
-Analysis Mode: {analysis_mode}
-Applicant: {applicant_data['name']}
+Analysis Mode: {results['mode']}
+Applicant: {applicant_data.get('name', 'N/A')}
 
 {'='*80}
 EXECUTIVE SUMMARY
@@ -617,21 +753,21 @@ Total Claim Amount: ${results['total_claim_amount']:,}
 APPLICANT INFORMATION
 {'='*80}
 
-Name: {applicant_data['name']}
-Age: {applicant_data['age']} years old
-Occupation: {applicant_data['occupation']}
-Location: {applicant_data['location']}
-Requested Coverage: ${applicant_data['coverage_amount']:,}
-Health Status: {applicant_data['health_status']}
-Lifestyle Factors: {applicant_data['lifestyle_factors']}
+Name: {applicant_data.get('name', 'N/A')}
+Age: {applicant_data.get('age', 'N/A')} years old
+Occupation: {applicant_data.get('occupation', 'N/A')}
+Location: {applicant_data.get('location', 'N/A')}
+Requested Coverage: ${applicant_data.get('coverage_amount', 0):,}
+Health Status: {applicant_data.get('health_status', 'N/A')}
+Lifestyle Factors: {applicant_data.get('lifestyle_factors', 'N/A')}
 
 {'='*80}
 EXTERNAL REPORTS
 {'='*80}
 
-Credit Score: {external_reports['credit_score']}
-Criminal Record: {'Yes' if external_reports['criminal_record'] else 'No'}
-Driving Record: {external_reports['driving_record']}
+Credit Score: {external_reports.get('credit_score', 'N/A')}
+Criminal Record: {'Yes' if external_reports.get('criminal_record') else 'No'}
+Driving Record: {external_reports.get('driving_record', 'N/A')}
 
 {'='*80}
 CLAIMS HISTORY
@@ -715,16 +851,22 @@ def main():
         )
         
         if api_key:
-            st.success("✅ API Key configured - AI Mode will be used")
+            st.success("✅ API Key configured - AI Mode available")
         else:
-            st.warning("⚠️ No API key - Using Fallback Mode (Rule-Based)")
+            st.warning("⚠️ No API key - Only Fallback Mode available")
         
         st.markdown("---")
         st.markdown("### ℹ️ About")
         st.info("This system uses multiple AI agents powered by LLMs to perform comprehensive underwriting analysis through prompt chaining. Falls back to rule-based logic if API unavailable.")
     
     # Main content tabs
-    tab1, tab2, tab3, tab4 = st.tabs(["📝 New Application", "📊 Analysis Results", "🔄 System Flow", "📚 Sample Data"])
+    tab1, tab2, tab3, tab4, tab5 = st.tabs([
+        "📝 Application Form", 
+        "🤖 AI Agent Analysis", 
+        "📊 Fallback Analysis",
+        "🔄 System Flow", 
+        "📚 Sample Data"
+    ])
     
     with tab1:
         st.markdown("### Applicant Information")
@@ -779,91 +921,119 @@ def main():
         
         st.markdown("---")
         
-        col1, col2 = st.columns(2)
+        # Store current form data in session state
+        if st.button("💾 Save Application Data", use_container_width=True):
+            st.session_state.current_applicant_data = {
+                'name': name,
+                'age': age,
+                'occupation': occupation,
+                'location': location,
+                'coverage_amount': coverage_amount,
+                'health_status': health_status,
+                'lifestyle_factors': ', '.join(lifestyle_factors)
+            }
+            
+            st.session_state.current_external_reports = {
+                'credit_score': credit_score,
+                'criminal_record': criminal_record,
+                'driving_record': driving_record
+            }
+            
+            st.session_state.current_claims_history = claims_history
+            
+            st.success("✅ Application data saved! Navigate to AI Agent Analysis or Fallback Analysis tab to proceed.")
+    
+    with tab2:
+        st.markdown("### 🤖 AI Agent-Based Risk Analysis")
+        st.info("This mode uses LLM-powered agents for intelligent risk assessment. Requires Hugging Face API key.")
         
-        with col1:
-            if st.button("🛡️ Analyze with AI Agents", use_container_width=True):
-                api_key_provided = True
-                try:
-                    api_key_check = st.secrets.get("HUGGINGFACE_API_KEY", "")
-                except:
-                    api_key_check = ""
+        if st.session_state.current_applicant_data is None:
+            st.warning("⚠️ Please complete and save the application form in the 'Application Form' tab first.")
+        else:
+            # Display current applicant info
+            st.markdown("#### Current Application")
+            col1, col2, col3 = st.columns(3)
+            with col1:
+                st.metric("Applicant", st.session_state.current_applicant_data['name'])
+            with col2:
+                st.metric("Age", st.session_state.current_applicant_data['age'])
+            with col3:
+                st.metric("Coverage", f"${st.session_state.current_applicant_data['coverage_amount']:,}")
+            
+            st.markdown("---")
+            
+            if st.button("🛡️ Run AI Agent Analysis", use_container_width=True):
+                if not api_key:
+                    st.error("❌ API key required for AI Agent Analysis. Please enter your Hugging Face API key in the sidebar or use Fallback Analysis.")
+                else:
+                    with st.spinner("🔄 AI Agents processing application..."):
+                        # Progress indicators
+                        progress_bar = st.progress(0)
+                        status_text = st.empty()
+                        
+                        status_text.text("🛡️ Agent 1: Summarizing applicant data...")
+                        progress_bar.progress(25)
+                        time.sleep(0.5)
+                        
+                        status_text.text("🛡️ Agent 2: Analyzing claims history...")
+                        progress_bar.progress(50)
+                        time.sleep(0.5)
+                        
+                        status_text.text("🛡️ Agent 3: Identifying risk factors...")
+                        progress_bar.progress(75)
+                        time.sleep(0.5)
+                        
+                        status_text.text("🛡️ Agent 4: Generating recommendations...")
+                        progress_bar.progress(90)
+                        
+                        results = analyze_with_ai_agents(
+                            st.session_state.current_applicant_data,
+                            st.session_state.current_claims_history,
+                            st.session_state.current_external_reports,
+                            api_key
+                        )
+                        
+                        st.session_state.ai_analysis_results = results
+                        st.session_state.ai_agent_outputs = results['agent_outputs']
+                        
+                        progress_bar.progress(100)
+                        status_text.text("✅ AI Agent analysis complete!")
+                        time.sleep(0.5)
+                        
+                        st.success("✅ AI Agent analysis complete! Results displayed below.")
+            
+            # Display results if available
+            if st.session_state.ai_analysis_results:
+                st.markdown("---")
+                st.markdown("### 🎯 AI Agent Analysis Results")
+                display_analysis_results(st.session_state.ai_analysis_results, "ai")
                 
-                if not api_key_check:
-                    api_key_provided = False
-                    st.warning("⚠️ No API key provided. Running in fallback mode with rule-based logic.")
-                
-                with st.spinner("🔄 AI Agents processing application..."):
-                    applicant_data = {
-                        'name': name,
-                        'age': age,
-                        'occupation': occupation,
-                        'location': location,
-                        'coverage_amount': coverage_amount,
-                        'health_status': health_status,
-                        'lifestyle_factors': ', '.join(lifestyle_factors)
-                    }
-                    
-                    external_reports = {
-                        'credit_score': credit_score,
-                        'criminal_record': criminal_record,
-                        'driving_record': driving_record
-                    }
-                    
-                    # Store applicant data for export
-                    st.session_state.applicant_data_current = applicant_data
-                    
-                    # Progress indicators
-                    progress_bar = st.progress(0)
-                    status_text = st.empty()
-                    
-                    status_text.text("🛡️ Agent 1: Summarizing applicant data...")
-                    progress_bar.progress(25)
-                    time.sleep(0.5)
-                    
-                    status_text.text("🛡️ Agent 2: Analyzing claims history...")
-                    progress_bar.progress(50)
-                    time.sleep(0.5)
-                    
-                    status_text.text("🛡️ Agent 3: Identifying risk factors...")
-                    progress_bar.progress(75)
-                    time.sleep(0.5)
-                    
-                    status_text.text("🛡️ Agent 4: Generating recommendations...")
-                    progress_bar.progress(90)
-                    
-                    results = analyze_with_agents(applicant_data, claims_history, external_reports, api_key_check)
-                    st.session_state.analysis_results = results
-                    
-                    progress_bar.progress(100)
-                    status_text.text("✅ Analysis complete!")
-                    time.sleep(0.5)
-                    
-                    st.success("✅ Multi-agent analysis complete! View results in the 'Analysis Results' tab.")
+                if st.button("🔄 Clear AI Results", use_container_width=True):
+                    st.session_state.ai_analysis_results = None
+                    st.session_state.ai_agent_outputs = {}
                     st.rerun()
+    
+    with tab3:
+        st.markdown("### 📊 Fallback Rule-Based Analysis")
+        st.info("This mode uses deterministic rule-based logic for risk assessment. No API key required.")
         
-        with col2:
-            if st.button("📋 Analyze with Fallback Mode", use_container_width=True):
+        if st.session_state.current_applicant_data is None:
+            st.warning("⚠️ Please complete and save the application form in the 'Application Form' tab first.")
+        else:
+            # Display current applicant info
+            st.markdown("#### Current Application")
+            col1, col2, col3 = st.columns(3)
+            with col1:
+                st.metric("Applicant", st.session_state.current_applicant_data['name'])
+            with col2:
+                st.metric("Age", st.session_state.current_applicant_data['age'])
+            with col3:
+                st.metric("Coverage", f"${st.session_state.current_applicant_data['coverage_amount']:,}")
+            
+            st.markdown("---")
+            
+            if st.button("📊 Run Fallback Analysis", use_container_width=True):
                 with st.spinner("🔄 Fallback agents processing application..."):
-                    applicant_data = {
-                        'name': name,
-                        'age': age,
-                        'occupation': occupation,
-                        'location': location,
-                        'coverage_amount': coverage_amount,
-                        'health_status': health_status,
-                        'lifestyle_factors': ', '.join(lifestyle_factors)
-                    }
-                    
-                    external_reports = {
-                        'credit_score': credit_score,
-                        'criminal_record': criminal_record,
-                        'driving_record': driving_record
-                    }
-                    
-                    # Store applicant data for export
-                    st.session_state.applicant_data_current = applicant_data
-                    
                     # Progress indicators
                     progress_bar = st.progress(0)
                     status_text = st.empty()
@@ -883,158 +1053,33 @@ def main():
                     status_text.text("📊 Fallback Agent 4: Generating recommendations...")
                     progress_bar.progress(90)
                     
-                    results = analyze_with_fallback(applicant_data, claims_history, external_reports)
-                    st.session_state.analysis_results = results
+                    results = analyze_with_fallback(
+                        st.session_state.current_applicant_data,
+                        st.session_state.current_claims_history,
+                        st.session_state.current_external_reports
+                    )
+                    
+                    st.session_state.fallback_analysis_results = results
+                    st.session_state.fallback_agent_outputs = results['agent_outputs']
                     
                     progress_bar.progress(100)
                     status_text.text("✅ Fallback analysis complete!")
                     time.sleep(0.5)
                     
-                    st.success("✅ Fallback analysis complete! View results in the 'Analysis Results' tab.")
+                    st.success("✅ Fallback analysis complete! Results displayed below.")
+            
+            # Display results if available
+            if st.session_state.fallback_analysis_results:
+                st.markdown("---")
+                st.markdown("### 🎯 Fallback Analysis Results")
+                display_analysis_results(st.session_state.fallback_analysis_results, "fallback")
+                
+                if st.button("🔄 Clear Fallback Results", use_container_width=True):
+                    st.session_state.fallback_analysis_results = None
+                    st.session_state.fallback_agent_outputs = {}
                     st.rerun()
     
-    with tab2:
-        if st.session_state.analysis_results is None:
-            st.info("👈 Please complete the application form and click 'Analyze' to see results.")
-        else:
-            results = st.session_state.analysis_results
-            
-            st.markdown("### 🎯 Risk Assessment Summary")
-            
-            # Analysis Mode Badge
-            mode = st.session_state.analysis_mode or "Unknown"
-            if "AI" in mode:
-                st.markdown(f'<span class="mode-badge mode-ai">🛡️ {mode}</span>', unsafe_allow_html=True)
-            else:
-                st.markdown(f'<span class="mode-badge mode-fallback">📊 {mode}</span>', unsafe_allow_html=True)
-            
-            st.markdown("---")
-            
-            # Risk score display
-            col1, col2, col3 = st.columns(3)
-            
-            with col1:
-                st.markdown(f"""
-                <div class="metric-card {results['color_class']}">
-                    <h3 style="margin:0;">Risk Score</h3>
-                    <h1 style="margin:0.5rem 0;">{results['risk_score']}/100</h1>
-                </div>
-                """, unsafe_allow_html=True)
-            
-            with col2:
-                st.markdown(f"""
-                <div class="metric-card {results['color_class']}">
-                    <h3 style="margin:0;">Risk Category</h3>
-                    <h1 style="margin:0.5rem 0;">{results['risk_category']}</h1>
-                </div>
-                """, unsafe_allow_html=True)
-            
-            with col3:
-                st.markdown(f"""
-                <div class="metric-card">
-                    <h3 style="margin:0;">Total Claims</h3>
-                    <h1 style="margin:0.5rem 0;">{results['total_claims']}</h1>
-                    <p style="margin:0;">${results['total_claim_amount']:,}</p>
-                </div>
-                """, unsafe_allow_html=True)
-            
-            st.markdown("---")
-            
-            # AI Agent Outputs
-            st.markdown("### 🛡️ Agent Analysis Results")
-            
-            agent_outputs = results['agent_outputs']
-            
-            card_class = "fallback-card" if "Fallback" in mode else "agent-card"
-            
-            st.markdown("#### 📊 Agent 1: Applicant Summary")
-            st.markdown(f"""
-            <div class="{card_class}">
-                <h4 style="margin:0 0 0.5rem 0;">Data Summarization Agent</h4>
-                <p style="margin:0; white-space: pre-wrap;">{agent_outputs.get('applicant_summary', 'N/A')}</p>
-            </div>
-            """, unsafe_allow_html=True)
-            
-            st.markdown("#### 📋 Agent 2: Claims Analysis")
-            st.markdown(f"""
-            <div class="{card_class}">
-                <h4 style="margin:0 0 0.5rem 0;">Claims Analysis Agent</h4>
-                <p style="margin:0; white-space: pre-wrap;">{agent_outputs.get('claims_analysis', 'N/A')}</p>
-            </div>
-            """, unsafe_allow_html=True)
-            
-            st.markdown("#### ⚠️ Agent 3: Risk Factors")
-            st.markdown(f"""
-            <div class="{card_class}">
-                <h4 style="margin:0 0 0.5rem 0;">Risk Factor Identification Agent</h4>
-                <p style="margin:0; white-space: pre-wrap;">{agent_outputs.get('risk_factors', 'N/A')}</p>
-            </div>
-            """, unsafe_allow_html=True)
-            
-            st.markdown("#### 💡 Agent 4: Underwriting Recommendation")
-            st.markdown(f"""
-            <div class="{card_class}">
-                <h4 style="margin:0 0 0.5rem 0;">Recommendation Agent</h4>
-                <p style="margin:0; white-space: pre-wrap;">{agent_outputs.get('recommendation', 'N/A')}</p>
-            </div>
-            """, unsafe_allow_html=True)
-            
-            # Export options
-            st.markdown("---")
-            st.markdown("### 📥 Export Report")
-            
-            # Prepare data for export
-            applicant_data = st.session_state.applicant_data_current
-            claims_history = []
-            external_reports = {'credit_score': 0, 'criminal_record': False, 'driving_record': 'Unknown'}
-            
-            # Generate JSON report
-            json_report = {
-                'timestamp': datetime.now().isoformat(),
-                'analysis_mode': st.session_state.analysis_mode,
-                'applicant': applicant_data,
-                'risk_assessment': {
-                    'risk_score': results['risk_score'],
-                    'risk_category': results['risk_category'],
-                    'total_claims': results['total_claims'],
-                    'total_claim_amount': results['total_claim_amount']
-                },
-                'agent_outputs': agent_outputs
-            }
-            
-            json_data = json.dumps(json_report, indent=2)
-            
-            # Generate text report
-            text_report = generate_text_report(results, applicant_data or {}, [], external_reports, st.session_state.analysis_mode or "Unknown")
-            
-            col1, col2, col3 = st.columns(3)
-            
-            with col1:
-                st.download_button(
-                    label="📄 Download JSON Report",
-                    data=json_data,
-                    file_name=f"risk_assessment_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json",
-                    mime="application/json",
-                    use_container_width=True
-                )
-            
-            with col2:
-                st.download_button(
-                    label="📝 Download Text Report",
-                    data=text_report,
-                    file_name=f"risk_assessment_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt",
-                    mime="text/plain",
-                    use_container_width=True
-                )
-            
-            with col3:
-                if st.button("🔄 New Analysis", use_container_width=True):
-                    st.session_state.analysis_results = None
-                    st.session_state.agent_outputs = {}
-                    st.session_state.analysis_mode = None
-                    st.rerun()
-    
-    with tab3:
+    with tab4:
         st.markdown("### 🔄 Multi-Agent System Flow")
         
         st.markdown("""
@@ -1057,13 +1102,19 @@ def main():
         st.markdown("""
         <div class="flow-step">
             <h3>🛡️ Step 2: Agent 1 - Data Summarization</h3>
-            <p><strong>Agent:</strong> Data Summarization Agent (LLM-powered)</p>
+            <p><strong>Agent:</strong> Data Summarization Agent (LLM-powered or Rule-based)</p>
             <p><strong>Task:</strong> Extract and summarize key applicant information</p>
-            <p><strong>Prompt Engineering:</strong></p>
+            <p><strong>AI Mode:</strong></p>
             <ul>
                 <li>Structured prompt with applicant details</li>
-                <li>Request for 2-3 sentence professional summary</li>
+                <li>Request for comprehensive professional summary</li>
                 <li>Focus on risk-relevant factors</li>
+            </ul>
+            <p><strong>Fallback Mode:</strong></p>
+            <ul>
+                <li>Rule-based demographic analysis</li>
+                <li>Occupation risk classification</li>
+                <li>Health status assessment</li>
             </ul>
             <p><strong>Output:</strong> Concise applicant profile highlighting critical factors</p>
         </div>
@@ -1074,9 +1125,9 @@ def main():
         st.markdown("""
         <div class="flow-step">
             <h3>🛡️ Step 3: Agent 2 - Claims Analysis</h3>
-            <p><strong>Agent:</strong> Claims Analysis Agent (LLM-powered)</p>
+            <p><strong>Agent:</strong> Claims Analysis Agent (LLM-powered or Rule-based)</p>
             <p><strong>Task:</strong> Analyze historical claims patterns</p>
-            <p><strong>Analysis:</strong></p>
+            <p><strong>Analysis Components:</strong></p>
             <ul>
                 <li>Frequency analysis: Number of claims over time</li>
                 <li>Severity analysis: Total claim amounts and averages</li>
@@ -1092,7 +1143,7 @@ def main():
         st.markdown("""
         <div class="flow-step">
             <h3>🛡️ Step 4: Agent 3 - Risk Factor Identification</h3>
-            <p><strong>Agent:</strong> Risk Factor Identification Agent (LLM-powered)</p>
+            <p><strong>Agent:</strong> Risk Factor Identification Agent (LLM-powered or Rule-based)</p>
             <p><strong>Task:</strong> Identify and prioritize key risk factors</p>
             <p><strong>Risk Categories:</strong></p>
             <ul>
@@ -1111,7 +1162,7 @@ def main():
         st.markdown("""
         <div class="flow-step">
             <h3>📊 Step 5: Risk Score Calculation</h3>
-            <p><strong>Method:</strong> Weighted scoring algorithm</p>
+            <p><strong>Method:</strong> Weighted scoring algorithm (consistent across both modes)</p>
             <p><strong>Scoring Components:</strong></p>
             <ul>
                 <li>Base score: 50/100</li>
@@ -1136,7 +1187,7 @@ def main():
         st.markdown("""
         <div class="flow-step">
             <h3>🛡️ Step 6: Agent 4 - Recommendation Generation</h3>
-            <p><strong>Agent:</strong> Recommendation Agent (LLM-powered)</p>
+            <p><strong>Agent:</strong> Recommendation Agent (LLM-powered or Rule-based)</p>
             <p><strong>Task:</strong> Generate actionable underwriting decision</p>
             <p><strong>Decision Framework:</strong></p>
             <ul>
@@ -1182,25 +1233,27 @@ def main():
         
         with col1:
             st.markdown("""
-            #### AI Mode Benefits
+            #### 🤖 AI Agent Mode
             - **LLM-Powered:** Uses Mixtral-8x7B for nuanced analysis
             - **Advanced Reasoning:** Complex pattern recognition
             - **Natural Language:** Human-like explanations
             - **Contextual:** Understands occupation-specific risks
             - **Flexible:** Adapts to unique applicant profiles
+            - **Requires:** Hugging Face API key
             """)
         
         with col2:
             st.markdown("""
-            #### Fallback Mode Benefits
+            #### 📊 Fallback Mode
             - **Rule-Based:** Deterministic logic
-            - **No API Dependency:** Works on rule-based system
+            - **No API Dependency:** Works without external services
             - **Fast Processing:** Immediate results
             - **Transparent:** Clear decision criteria
             - **Reliable:** Consistent scoring
+            - **Always Available:** No API key needed
             """)
     
-    with tab4:
+    with tab5:
         st.markdown("### 📚 Sample Data & Use Cases")
         
         st.markdown("#### Low Risk Profile Example")
@@ -1259,22 +1312,22 @@ Expected Recommendation: MANUAL REVIEW REQUIRED
         st.markdown("---")
         st.markdown("### 💡 Tips for Best Results")
         st.info("""
-        **For Optimal AI Agent Performance:**
-        1. Provide complete and accurate applicant data
-        2. Include all relevant claims history
+        **For Optimal Performance:**
+        1. Complete all fields in the application form accurately
+        2. Include detailed claims history if applicable
         3. Ensure external reports are up-to-date
-        4. Use valid Hugging Face API key for AI mode
-        5. Review all agent outputs before final decision
+        4. Save application data before running analysis
+        5. Compare results between AI and Fallback modes
         
-        **API Key Setup:**
+        **API Key Setup (for AI Mode):**
         - Get free API key from: https://huggingface.co/settings/tokens
         - Add to Streamlit secrets as `HUGGINGFACE_API_KEY`
         - Or enter directly in the sidebar
         
-        **Fallback Mode:**
-        - Automatically activates when API key is unavailable
-        - Uses deterministic rule-based logic
-        - Provides consistent and transparent scoring
+        **Mode Comparison:**
+        - **AI Mode:** Better for nuanced, context-aware analysis
+        - **Fallback Mode:** Better for consistent, transparent decisions
+        - Try both modes to compare results!
         """)
         
         st.markdown("---")
@@ -1288,6 +1341,7 @@ Expected Recommendation: MANUAL REVIEW REQUIRED
             - Streamlit 1.28+
             - Custom CSS
             - Responsive UI
+            - Multi-tab interface
             """)
         
         with col2:
@@ -1296,6 +1350,7 @@ Expected Recommendation: MANUAL REVIEW REQUIRED
             - Hugging Face API
             - Mixtral-8x7B LLM
             - Prompt Engineering
+            - Rule-based fallback
             """)
         
         with col3:
@@ -1304,7 +1359,38 @@ Expected Recommendation: MANUAL REVIEW REQUIRED
             - Python 3.8+
             - Multi-agent system
             - JSON data handling
+            - Session state management
             """)
+        
+        st.markdown("---")
+        st.markdown("### 🔄 Workflow Guide")
+        
+        st.markdown("""
+        **Step-by-Step Process:**
+        
+        1. **📝 Application Form Tab**
+           - Fill in all applicant information
+           - Add claims history if applicable
+           - Enter external report data
+           - Click "Save Application Data"
+        
+        2. **🤖 AI Agent Analysis Tab** (if API key available)
+           - Review saved application summary
+           - Click "Run AI Agent Analysis"
+           - View LLM-powered analysis results
+           - Download reports if needed
+        
+        3. **📊 Fallback Analysis Tab** (always available)
+           - Review saved application summary
+           - Click "Run Fallback Analysis"
+           - View rule-based analysis results
+           - Download reports if needed
+        
+        4. **Compare Results**
+           - Analyze differences between AI and Fallback modes
+           - Consider both perspectives for final decision
+           - Export reports for documentation
+        """)
 
 if __name__ == "__main__":
     main()
