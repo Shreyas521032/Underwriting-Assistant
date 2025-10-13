@@ -901,8 +901,8 @@ def main():
     # Main content tabs
     tab1, tab2, tab3, tab4, tab5 = st.tabs([
         "📝 Application Form", 
-        "🤖 AI Agent Analysis", 
         "📊 Rule-based Analysis",
+        "🤖 AI Agent Analysis", 
         "🔄 System Flow", 
         "📚 Sample Data"
     ])
@@ -994,8 +994,73 @@ def main():
             st.session_state.current_claims_history = claims_history
             
             st.success("✅ Application data saved! Navigate to AI Agent Analysis or Rule-based Analysis tab to proceed.")
-    
     with tab2:
+        st.markdown("### 📊 Rule-Based Analysis")
+        st.info("This mode uses deterministic rule-based logic for risk assessment. No API key required.")
+        
+        if st.session_state.current_applicant_data is None:
+            st.warning("⚠️ Please complete and save the application form in the 'Application Form' tab first.")
+        else:
+            # Display current applicant info
+            st.markdown("#### Current Application")
+            col1, col2, col3 = st.columns(3)
+            with col1:
+                st.metric("Applicant", st.session_state.current_applicant_data['name'])
+            with col2:
+                st.metric("Age", st.session_state.current_applicant_data['age'])
+            with col3:
+                st.metric("Coverage", f"${st.session_state.current_applicant_data['coverage_amount']:,}")
+            
+            st.markdown("---")
+            
+            if st.button("📊 Run Rule-based Analysis", use_container_width=True):
+                with st.spinner("🔄 Rule-based agents processing application..."):
+                    # Progress indicators
+                    progress_bar = st.progress(0)
+                    status_text = st.empty()
+                    
+                    status_text.text("📊 Rule-based Agent 1: Summarizing applicant data...")
+                    progress_bar.progress(25)
+                    time.sleep(0.1)
+                    
+                    status_text.text("📊 Rule-based Agent 2: Analyzing claims history...")
+                    progress_bar.progress(50)
+                    time.sleep(0.1)
+                    
+                    status_text.text("📊 Rule-based Agent 3: Identifying risk factors...")
+                    progress_bar.progress(75)
+                    time.sleep(0.1)
+                    
+                    status_text.text("📊 Rule-based Agent 4: Generating recommendations...")
+                    progress_bar.progress(90)
+                    
+                    # Call fallback analysis
+                    results = analyze_with_fallback(
+                        st.session_state.current_applicant_data,
+                        st.session_state.current_claims_history,
+                        st.session_state.current_external_reports
+                    )
+                    
+                    st.session_state.fallback_analysis_results = results
+                    st.session_state.fallback_agent_outputs = results['agent_outputs']
+                    
+                    progress_bar.progress(100)
+                    status_text.text("✅ Rule-based analysis complete!")
+                    time.sleep(0.5)
+                    
+                    st.success("✅ Rule-based analysis complete! Results displayed below.")
+            
+            # Display results if available
+            if st.session_state.fallback_analysis_results:
+                st.markdown("---")
+                st.markdown("### 🎯 Rule-based Analysis Results")
+                display_analysis_results(st.session_state.fallback_analysis_results, "fallback")
+                
+                if st.button("🔄 Clear Rule-based Results", use_container_width=True):
+                    st.session_state.fallback_analysis_results = None
+                    st.session_state.fallback_agent_outputs = {}
+                    st.rerun()
+    with tab3:
         st.markdown("### 🤖 AI Agent-Based Risk Analysis")
         st.info("This mode uses LLM-powered agents for intelligent risk assessment. Requires Hugging Face API key.")
         
@@ -1069,72 +1134,6 @@ def main():
                     st.session_state.ai_agent_outputs = {}
                     st.rerun()
     
-    with tab3:
-        st.markdown("### 📊 Rule-Based Analysis")
-        st.info("This mode uses deterministic rule-based logic for risk assessment. No API key required.")
-        
-        if st.session_state.current_applicant_data is None:
-            st.warning("⚠️ Please complete and save the application form in the 'Application Form' tab first.")
-        else:
-            # Display current applicant info
-            st.markdown("#### Current Application")
-            col1, col2, col3 = st.columns(3)
-            with col1:
-                st.metric("Applicant", st.session_state.current_applicant_data['name'])
-            with col2:
-                st.metric("Age", st.session_state.current_applicant_data['age'])
-            with col3:
-                st.metric("Coverage", f"${st.session_state.current_applicant_data['coverage_amount']:,}")
-            
-            st.markdown("---")
-            
-            if st.button("📊 Run Rule-based Analysis", use_container_width=True):
-                with st.spinner("🔄 Rule-based agents processing application..."):
-                    # Progress indicators
-                    progress_bar = st.progress(0)
-                    status_text = st.empty()
-                    
-                    status_text.text("📊 Rule-based Agent 1: Summarizing applicant data...")
-                    progress_bar.progress(25)
-                    time.sleep(0.1)
-                    
-                    status_text.text("📊 Rule-based Agent 2: Analyzing claims history...")
-                    progress_bar.progress(50)
-                    time.sleep(0.1)
-                    
-                    status_text.text("📊 Rule-based Agent 3: Identifying risk factors...")
-                    progress_bar.progress(75)
-                    time.sleep(0.1)
-                    
-                    status_text.text("📊 Rule-based Agent 4: Generating recommendations...")
-                    progress_bar.progress(90)
-                    
-                    # Call fallback analysis
-                    results = analyze_with_fallback(
-                        st.session_state.current_applicant_data,
-                        st.session_state.current_claims_history,
-                        st.session_state.current_external_reports
-                    )
-                    
-                    st.session_state.fallback_analysis_results = results
-                    st.session_state.fallback_agent_outputs = results['agent_outputs']
-                    
-                    progress_bar.progress(100)
-                    status_text.text("✅ Rule-based analysis complete!")
-                    time.sleep(0.5)
-                    
-                    st.success("✅ Rule-based analysis complete! Results displayed below.")
-            
-            # Display results if available
-            if st.session_state.fallback_analysis_results:
-                st.markdown("---")
-                st.markdown("### 🎯 Rule-based Analysis Results")
-                display_analysis_results(st.session_state.fallback_analysis_results, "fallback")
-                
-                if st.button("🔄 Clear Rule-based Results", use_container_width=True):
-                    st.session_state.fallback_analysis_results = None
-                    st.session_state.fallback_agent_outputs = {}
-                    st.rerun()
     
     with tab4:
         st.markdown("### 🔄 Multi-Agent System Flow")
