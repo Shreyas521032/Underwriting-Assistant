@@ -902,7 +902,7 @@ def main():
     tab1, tab2, tab3, tab4, tab5 = st.tabs([
         "📝 Application Form", 
         "📊 Rule-based Analysis",
-        "🤖 AI Agent Analysis", 
+        "🌐 AI Agent Analysis", 
         "🔄 System Flow", 
         "📚 Sample Data"
     ])
@@ -1061,7 +1061,7 @@ def main():
                     st.session_state.fallback_agent_outputs = {}
                     st.rerun()
     with tab3:
-        st.markdown("### 🤖 AI Agent-Based Risk Analysis")
+        st.markdown("### 🌐 AI Agent-Based Risk Analysis")
         st.info("This mode uses LLM-powered agents for intelligent risk assessment. Requires Hugging Face API key.")
         
         if st.session_state.current_applicant_data is None:
@@ -1289,7 +1289,7 @@ def main():
         
         with col1:
             st.markdown("""
-            #### 🤖 AI Agent Mode
+            #### 🌐 AI Agent Mode
             - **LLM-Powered:** Uses Mixtral-8x7B for nuanced analysis
             - **Advanced Reasoning:** Complex pattern recognition
             - **Natural Language:** Human-like explanations
@@ -1430,7 +1430,7 @@ Expected Recommendation: MANUAL REVIEW REQUIRED
             - Enter external report data
             - **Click "Save Application Data"**
         
-        2. **🤖 AI Agent Analysis Tab** (if API key available)
+        2. **🌐 AI Agent Analysis Tab** (if API key available)
             - Review saved application summary
             - **Click "Run AI Agent Analysis" (This will now use the API key from the sidebar)**
             - View LLM-powered analysis results
