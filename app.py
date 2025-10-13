@@ -248,16 +248,16 @@ APPLICANT PROFILE:
 
 Provide a detailed professional summary with the following structure:
 
-**APPLICANT OVERVIEW:**
+<strong>APPLICANT OVERVIEW:</strong>
 [10 sentences providing general profile overview]
 
-**KEY RISK INDICATORS:**
+<strong>KEY RISK INDICATORS:</strong>
 • Demographic Risk: [Analyze age and occupation factors]
 • Health Risk: [Analyze health status and lifestyle]
 • Financial Exposure: [Analyze coverage amount requested]
 • Geographic Risk: [Analyze location factors]
 
-**INITIAL ASSESSMENT:**
+<strong>INITIAL ASSESSMENT:</strong>
 [5 sentences summarizing preliminary risk profile]
 
 Format your response with clear bullet points and bold headers as shown above."""
@@ -273,13 +273,13 @@ Format your response with clear bullet points and bold headers as shown above.""
         summary = f"""<strong>APPLICANT OVERVIEW:</strong>
 {applicant_data['name']}, a {applicant_data['age']}-year-old {applicant_data['occupation']} from {applicant_data['location']}, is seeking ${applicant_data['coverage_amount']:,} in coverage. The applicant reports {applicant_data['health_status'].lower()} health status with lifestyle factors including {applicant_data['lifestyle_factors']}.
 
-**KEY RISK INDICATORS:**
+<strong>KEY RISK INDICATORS:</strong>
 • Demographic Risk: {age_risk} - Age {applicant_data['age']} contributes a baseline demographic risk profile
 • Health Risk: {health_risk} - Current health status and lifestyle choices are contributing factors
 • Financial Exposure: Coverage amount of ${applicant_data['coverage_amount']:,} represents a {'significant' if applicant_data['coverage_amount'] > 1000000 else 'moderate' if applicant_data['coverage_amount'] > 500000 else 'standard'} financial exposure
 • Geographic Risk: Location in {applicant_data['location']} presents {'urban' if 'City' in applicant_data['location'] or any(city in applicant_data['location'] for city in ['York', 'Angeles', 'Chicago', 'Houston', 'Phoenix', 'Philadelphia', 'San Antonio', 'San Diego', 'Dallas', 'San Jose', 'Austin', 'Jacksonville', 'Miami', 'Denver', 'Boston', 'Seattle', 'Washington', 'Atlanta']) else 'suburban/rural'} risk considerations
 
-**INITIAL ASSESSMENT:**
+<strong>INITIAL ASSESSMENT:</strong>
 {occupation_risk} Overall preliminary risk assessment indicates a {'favorable' if age_risk == 'Low' and health_risk == 'Low' else 'moderate' if age_risk in ['Low', 'Moderate'] and health_risk in ['Low', 'Moderate'] else 'elevated'} risk profile requiring further evaluation."""
         
         return summary
@@ -858,13 +858,13 @@ def main():
     with st.sidebar:
         st.markdown("### 🛡️ AI Agents")
         st.markdown("""
-        1. **Data Summarization Agent**
+        1. <strong>Data Summarization Agent</strong>
             - Extracts key applicant info
-        2. **Claims Analysis Agent**
+        2. <strong>Claims Analysis Agent</strong>
             - Analyzes historical patterns
-        3. **Risk Factor Agent**
+        3. <strong>Risk Factor Agent</strong>
             - Identifies critical risks
-        4. **Recommendation Agent**
+        4. <strong>Recommendation Agent</strong>
             - Generates decisions
         """)
         
@@ -1292,23 +1292,23 @@ def main():
         with col1:
             st.markdown("""
             #### 🤖 AI Agent Mode
-            - **LLM-Powered:** Uses Mixtral-8x7B for nuanced analysis
-            - **Advanced Reasoning:** Complex pattern recognition
-            - **Natural Language:** Human-like explanations
-            - **Contextual:** Understands occupation-specific risks
-            - **Flexible:** Adapts to unique applicant profiles
-            - **Requires:** Hugging Face API key
+            - <strong>LLM-Powered:</strong> Uses Mixtral-8x7B for nuanced analysis
+            - <strong>Advanced Reasoning:</strong> Complex pattern recognition
+            - <strong>Natural Language:</strong> Human-like explanations
+            - <strong>Contextual:</strong> Understands occupation-specific risks
+            - <strong>Flexible:</strong> Adapts to unique applicant profiles
+            - <strong>Requires:</strong> Hugging Face API key
             """)
         
         with col2:
             st.markdown("""
             #### 📊 Rule-based Mode
-            - **Rule-Based:** Deterministic logic
-            - **No API Dependency:** Works without external services
-            - **Fast Processing:** Immediate results
-            - **Transparent:** Clear decision criteria
-            - **Reliable:** Consistent scoring
-            - **Always Available:** No API key needed
+            - <strong>Rule-Based:</strong> Deterministic logic
+            - <strong>No API Dependency:</strong> Works without external services
+            - <strong>Fast Processing:</strong> Immediate results
+            - <strong>Transparent:/<strong> Clear decision criteria
+            - <strong>Reliable:</strong> Consistent scoring
+            - <strong>Always Available:</strong> No API key needed
             """)
     
     with tab5:
@@ -1370,21 +1370,21 @@ Expected Recommendation: MANUAL REVIEW REQUIRED
         st.markdown("---")
         st.markdown("### 💡 Tips for Best Results")
         st.info("""
-        **For Optimal Performance:**
+        <strong>For Optimal Performance:</strong>
         1. Complete all fields in the application form accurately
         2. Include detailed claims history if applicable
         3. Ensure external reports are up-to-date
-        4. **Save application data before running analysis**
+        4. <strong>Save application data before running analysis</strong>
         5. Compare results between AI and Rule-based modes
         
-        **API Key Setup (for AI Mode):**
+        <strong>API Key Setup (for AI Mode):</strong>
         - Get free API key from: https://huggingface.co/settings/tokens
-        - **Enter the key in the sidebar text field.**
+        - <strong>Enter the key in the sidebar text field.</strong>
         - The `get_llm_client` function is now dynamically loaded/re-initialized when you press the 'Run AI Agent Analysis' button with a new key.
         
-        **Mode Comparison:**
-        - **AI Mode:** Better for nuanced, context-aware analysis
-        - **Rule-based Mode:** Better for consistent, transparent decisions
+        <strong>Mode Comparison:</strong>
+        - <strong>AI Mode:</strong> Better for nuanced, context-aware analysis
+        - <strong>Rule-based Mode:</strong> Better for consistent, transparent decisions
         - Try both modes to compare results!
         """)
         
@@ -1395,7 +1395,7 @@ Expected Recommendation: MANUAL REVIEW REQUIRED
         
         with col1:
             st.markdown("""
-            **Frontend**
+            <strong>Frontend</strong>
             - Streamlit 1.28+
             - Custom CSS
             - Responsive UI
@@ -1404,7 +1404,7 @@ Expected Recommendation: MANUAL REVIEW REQUIRED
         
         with col2:
             st.markdown("""
-            **AI/ML**
+            <strong>AI/ML</strong>
             - Hugging Face API
             - Mixtral-8x7B LLM
             - Prompt Engineering
@@ -1413,7 +1413,7 @@ Expected Recommendation: MANUAL REVIEW REQUIRED
         
         with col3:
             st.markdown("""
-            **Backend**
+            <strong>Backend</strong>
             - Python 3.8+
             - Multi-agent system
             - JSON data handling
@@ -1424,27 +1424,27 @@ Expected Recommendation: MANUAL REVIEW REQUIRED
         st.markdown("### 🔄 Workflow Guide")
         
         st.markdown("""
-        **Step-by-Step Process:**
+        <strong>Step-by-Step Process:</strong>
         
-        1. **📝 Application Form Tab**
+        1. <strong>📝 Application Form Tab</strong>
             - Fill in all applicant information
             - Add claims history if applicable
             - Enter external report data
-            - **Click "Save Application Data"**
+            - <strong>Click "Save Application Data"</strong>
         
-        2. **🤖 AI Agent Analysis Tab** (if API key available)
+        2. <strong>🤖 AI Agent Analysis Tab</strong> (if API key available)
             - Review saved application summary
-            - **Click "Run AI Agent Analysis" (This will now use the API key from the sidebar)**
+            - <strong>Click "Run AI Agent Analysis" (This will now use the API key from the sidebar)</strong>
             - View LLM-powered analysis results
             - Download reports if needed
         
-        3. **📊 Rule-based Analysis Tab** (always available)
+        3. <strong>📊 Rule-based Analysis Tab</strong> (always available)
             - Review saved application summary
             - Click "Run Rule-based Analysis"
             - View rule-based analysis results
             - Download reports if needed
         
-        4. **Compare Results**
+        4. <strong>Compare Results</strong>
             - Analyze differences between AI and Rule-based modes
             - Consider both perspectives for final decision
             - Export reports for documentation
