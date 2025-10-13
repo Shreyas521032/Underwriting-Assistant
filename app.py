@@ -858,13 +858,13 @@ def main():
     with st.sidebar:
         st.markdown("### 🛡️ AI Agents")
         st.markdown("""
-        1. <strong>Data Summarization Agent</strong>
+        1. **Data Summarization Agent**
             - Extracts key applicant info
-        2. <strong>Claims Analysis Agent</strong>
+        2. **Claims Analysis Agent**
             - Analyzes historical patterns
-        3. <strong>Risk Factor Agent</strong>
+        3. **Risk Factor Agent**
             - Identifies critical risks
-        4. <strong>Recommendation Agent</strong>
+        4. **Recommendation Agent**
             - Generates decisions
         """)
         
@@ -1143,7 +1143,7 @@ def main():
         st.markdown("""
         <div class="flow-step">
             <h3>📥 Step 1: Data Ingestion</h3>
-            <p><strong>Input Sources:</strong></p>
+            <p>**Input Sources:**</p>
             <ul>
                 <li>Applicant demographic information (age, occupation, location)</li>
                 <li>Health status and lifestyle factors</li>
@@ -1151,7 +1151,7 @@ def main():
                 <li>External reports (credit score, criminal record, driving record)</li>
                 <li>Requested coverage amount</li>
             </ul>
-            <p><strong>Processing:</strong> Data validation and normalization</p>
+            <p>**Processing:** Data validation and normalization</p>
         </div>
         """, unsafe_allow_html=True)
         
@@ -1160,21 +1160,21 @@ def main():
         st.markdown("""
         <div class="flow-step">
             <h3>🛡️ Step 2: Agent 1 - Data Summarization</h3>
-            <p><strong>Agent:</strong> Data Summarization Agent (LLM-powered or Rule-based)</p>
-            <p><strong>Task:</strong> Extract and summarize key applicant information</p>
-            <p><strong>AI Mode:</strong></p>
+            <p>**Agent:** Data Summarization Agent (LLM-powered or Rule-based)</p>
+            <p>**Task:** Extract and summarize key applicant information</p>
+            <p>**AI Mode:**</p>
             <ul>
                 <li>Structured prompt with applicant details</li>
                 <li>Request for comprehensive professional summary</li>
                 <li>Focus on risk-relevant factors</li>
             </ul>
-            <p><strong>Fallback Mode:</strong></p>
+            <p>**Fallback Mode:**</p>
             <ul>
                 <li>Rule-based demographic analysis</li>
                 <li>Occupation risk classification</li>
                 <li>Health status assessment</li>
             </ul>
-            <p><strong>Output:</strong> Concise applicant profile highlighting critical factors</p>
+            <p>**Output:** Concise applicant profile highlighting critical factors</p>
         </div>
         """, unsafe_allow_html=True)
         
@@ -1183,16 +1183,16 @@ def main():
         st.markdown("""
         <div class="flow-step">
             <h3>🛡️ Step 3: Agent 2 - Claims Analysis</h3>
-            <p><strong>Agent:</strong> Claims Analysis Agent (LLM-powered or Rule-based)</p>
-            <p><strong>Task:</strong> Analyze historical claims patterns</p>
-            <p><strong>Analysis Components:</strong></p>
+            <p>**Agent:** Claims Analysis Agent (LLM-powered or Rule-based)</p>
+            <p>**Task:** Analyze historical claims patterns</p>
+            <p>**Analysis Components:**</p>
             <ul>
                 <li>Frequency analysis: Number of claims over time</li>
                 <li>Severity analysis: Total claim amounts and averages</li>
                 <li>Pattern detection: Claim types and recurring issues</li>
                 <li>Temporal analysis: Claim distribution timeline</li>
             </ul>
-            <p><strong>Output:</strong> Claims pattern analysis with risk indicators</p>
+            <p>**Output:** Claims pattern analysis with risk indicators</p>
         </div>
         """, unsafe_allow_html=True)
         
@@ -1201,17 +1201,17 @@ def main():
         st.markdown("""
         <div class="flow-step">
             <h3>🛡️ Step 4: Agent 3 - Risk Factor Identification</h3>
-            <p><strong>Agent:</strong> Risk Factor Identification Agent (LLM-powered or Rule-based)</p>
-            <p><strong>Task:</strong> Identify and prioritize key risk factors</p>
-            <p><strong>Risk Categories:</strong></p>
+            <p>**Agent:** Risk Factor Identification Agent (LLM-powered or Rule-based)</p>
+            <p>**Task:** Identify and prioritize key risk factors</p>
+            <p>**Risk Categories:**</p>
             <ul>
-                <li><strong>Demographic Risks:</strong> Age, occupation, location</li>
-                <li><strong>Health Risks:</strong> Current health status, lifestyle factors</li>
-                <li><strong>Behavioral Risks:</strong> Smoking, high-risk activities</li>
-                <li><strong>Financial Risks:</strong> Credit score, financial stability</li>
-                <li><strong>Historical Risks:</strong> Claims history, criminal record</li>
+                <li>**Demographic Risks:** Age, occupation, location</li>
+                <li>**Health Risks:** Current health status, lifestyle factors</li>
+                <li>**Behavioral Risks:** Smoking, high-risk activities</li>
+                <li>**Financial Risks:** Credit score, financial stability</li>
+                <li>**Historical Risks:** Claims history, criminal record</li>
             </ul>
-            <p><strong>Output:</strong> Prioritized list of 3-5 key risk factors with explanations</p>
+            <p>**Output:** Prioritized list of 3-5 key risk factors with explanations</p>
         </div>
         """, unsafe_allow_html=True)
         
@@ -1220,8 +1220,8 @@ def main():
         st.markdown("""
         <div class="flow-step">
             <h3>📊 Step 5: Risk Score Calculation</h3>
-            <p><strong>Method:</strong> Weighted scoring algorithm (consistent across both modes)</p>
-            <p><strong>Scoring Components:</strong></p>
+            <p>**Method:** Weighted scoring algorithm (consistent across both modes)</p>
+            <p>**Scoring Components:**</p>
             <ul>
                 <li>Base score: 50/100</li>
                 <li>Age factor: ±5 to ±15 points</li>
@@ -1231,11 +1231,11 @@ def main():
                 <li>Credit score: -5 to +10 points</li>
                 <li>Criminal record: +20 points</li>
             </ul>
-            <p><strong>Risk Categories:</strong></p>
+            <p>**Risk Categories:**</p>
             <ul>
-                <li><strong>Low Risk:</strong> 0-39 (Green)</li>
-                <li><strong>Medium Risk:</strong> 40-69 (Orange)</li>
-                <li><strong>High Risk:</strong> 70-100 (Red)</li>
+                <li>**Low Risk:** 0-39 (Green)</li>
+                <li>**Medium Risk:** 40-69 (Orange)</li>
+                <li>**High Risk:** 70-100 (Red)</li>
             </ul>
         </div>
         """, unsafe_allow_html=True)
@@ -1245,16 +1245,16 @@ def main():
         st.markdown("""
         <div class="flow-step">
             <h3>🛡️ Step 6: Agent 4 - Recommendation Generation</h3>
-            <p><strong>Agent:</strong> Recommendation Agent (LLM-powered or Rule-based)</p>
-            <p><strong>Task:</strong> Generate actionable underwriting decision</p>
-            <p><strong>Decision Framework:</strong></p>
+            <p>**Agent:** Recommendation Agent (LLM-powered or Rule-based)</p>
+            <p>**Task:** Generate actionable underwriting decision</p>
+            <p>**Decision Framework:**</p>
             <ul>
-                <li><strong>Approve:</strong> Low risk, standard terms</li>
-                <li><strong>Approve with Conditions:</strong> Medium risk, adjusted premium/terms</li>
-                <li><strong>Manual Review:</strong> High risk, requires human oversight</li>
-                <li><strong>Decline:</strong> Unacceptable risk level</li>
+                <li>**Approve:** Low risk, standard terms</li>
+                <li>**Approve with Conditions:** Medium risk, adjusted premium/terms</li>
+                <li>**Manual Review:** High risk, requires human oversight</li>
+                <li>**Decline:** Unacceptable risk level</li>
             </ul>
-            <p><strong>Recommendations Include:</strong></p>
+            <p>**Recommendations Include:**</p>
             <ul>
                 <li>Clear approval/decline decision</li>
                 <li>Premium adjustment suggestions</li>
@@ -1269,8 +1269,8 @@ def main():
         st.markdown("""
         <div class="flow-step">
             <h3>📋 Step 7: Report Generation & Export</h3>
-            <p><strong>Output Formats:</strong> JSON, Text Report</p>
-            <p><strong>Report Components:</strong></p>
+            <p>**Output Formats:** JSON, Text Report</p>
+            <p>**Report Components:**</p>
             <ul>
                 <li>Risk score (0-100)</li>
                 <li>Risk category (Low/Medium/High)</li>
@@ -1279,7 +1279,7 @@ def main():
                 <li>Timestamp and metadata</li>
                 <li>Analysis mode (AI or Rule-based)</li>
             </ul>
-            <p><strong>Delivery:</strong> Dashboard display + downloadable reports</p>
+            <p>**Delivery:** Dashboard display + downloadable reports</p>
         </div>
         """, unsafe_allow_html=True)
         
@@ -1292,23 +1292,23 @@ def main():
         with col1:
             st.markdown("""
             #### 🤖 AI Agent Mode
-            - <strong>LLM-Powered:</strong> Uses Mixtral-8x7B for nuanced analysis
-            - <strong>Advanced Reasoning:</strong> Complex pattern recognition
-            - <strong>Natural Language:</strong> Human-like explanations
-            - <strong>Contextual:</strong> Understands occupation-specific risks
-            - <strong>Flexible:</strong> Adapts to unique applicant profiles
-            - <strong>Requires:</strong> Hugging Face API key
+            - **LLM-Powered:** Uses Mixtral-8x7B for nuanced analysis
+            - **Advanced Reasoning:** Complex pattern recognition
+            - **Natural Language:** Human-like explanations
+            - **Contextual:** Understands occupation-specific risks
+            - **Flexible:** Adapts to unique applicant profiles
+            - **Requires:** Hugging Face API key
             """)
         
         with col2:
             st.markdown("""
             #### 📊 Rule-based Mode
-            - <strong>Rule-Based:</strong> Deterministic logic
-            - <strong>No API Dependency:</strong> Works without external services
-            - <strong>Fast Processing:</strong> Immediate results
-            - <strong>Transparent:/<strong> Clear decision criteria
-            - <strong>Reliable:</strong> Consistent scoring
-            - <strong>Always Available:</strong> No API key needed
+            - **Rule-Based:** Deterministic logic
+            - **No API Dependency:** Works without external services
+            - **Fast Processing:** Immediate results
+            - **Transparent:/** Clear decision criteria
+            - **Reliable:** Consistent scoring
+            - **Always Available:** No API key needed
             """)
     
     with tab5:
@@ -1370,21 +1370,21 @@ Expected Recommendation: MANUAL REVIEW REQUIRED
         st.markdown("---")
         st.markdown("### 💡 Tips for Best Results")
         st.info("""
-        <strong>For Optimal Performance:</strong>
+        **For Optimal Performance:**
         1. Complete all fields in the application form accurately
         2. Include detailed claims history if applicable
         3. Ensure external reports are up-to-date
-        4. <strong>Save application data before running analysis</strong>
+        4. **Save application data before running analysis**
         5. Compare results between AI and Rule-based modes
         
-        <strong>API Key Setup (for AI Mode):</strong>
+        **API Key Setup (for AI Mode):**
         - Get free API key from: https://huggingface.co/settings/tokens
-        - <strong>Enter the key in the sidebar text field.</strong>
+        - **Enter the key in the sidebar text field.**
         - The `get_llm_client` function is now dynamically loaded/re-initialized when you press the 'Run AI Agent Analysis' button with a new key.
         
-        <strong>Mode Comparison:</strong>
-        - <strong>AI Mode:</strong> Better for nuanced, context-aware analysis
-        - <strong>Rule-based Mode:</strong> Better for consistent, transparent decisions
+        **Mode Comparison:**
+        - **AI Mode:** Better for nuanced, context-aware analysis
+        - **Rule-based Mode:** Better for consistent, transparent decisions
         - Try both modes to compare results!
         """)
         
@@ -1395,7 +1395,7 @@ Expected Recommendation: MANUAL REVIEW REQUIRED
         
         with col1:
             st.markdown("""
-            <strong>Frontend</strong>
+            **Frontend**
             - Streamlit 1.28+
             - Custom CSS
             - Responsive UI
@@ -1404,7 +1404,7 @@ Expected Recommendation: MANUAL REVIEW REQUIRED
         
         with col2:
             st.markdown("""
-            <strong>AI/ML</strong>
+            **AI/ML**
             - Hugging Face API
             - Mixtral-8x7B LLM
             - Prompt Engineering
@@ -1413,7 +1413,7 @@ Expected Recommendation: MANUAL REVIEW REQUIRED
         
         with col3:
             st.markdown("""
-            <strong>Backend</strong>
+            **Backend**
             - Python 3.8+
             - Multi-agent system
             - JSON data handling
@@ -1424,27 +1424,27 @@ Expected Recommendation: MANUAL REVIEW REQUIRED
         st.markdown("### 🔄 Workflow Guide")
         
         st.markdown("""
-        <strong>Step-by-Step Process:</strong>
+        **Step-by-Step Process:**
         
-        1. <strong>📝 Application Form Tab</strong>
+        1. **📝 Application Form Tab**
             - Fill in all applicant information
             - Add claims history if applicable
             - Enter external report data
-            - <strong>Click "Save Application Data"</strong>
+            - **Click "Save Application Data"**
         
-        2. <strong>🤖 AI Agent Analysis Tab</strong> (if API key available)
+        2. **🤖 AI Agent Analysis Tab** (if API key available)
             - Review saved application summary
-            - <strong>Click "Run AI Agent Analysis" (This will now use the API key from the sidebar)</strong>
+            - **Click "Run AI Agent Analysis" (This will now use the API key from the sidebar)**
             - View LLM-powered analysis results
             - Download reports if needed
         
-        3. <strong>📊 Rule-based Analysis Tab</strong> (always available)
+        3. **📊 Rule-based Analysis Tab** (always available)
             - Review saved application summary
             - Click "Run Rule-based Analysis"
             - View rule-based analysis results
             - Download reports if needed
         
-        4. <strong>Compare Results</strong>
+        4. **Compare Results**
             - Analyze differences between AI and Rule-based modes
             - Consider both perspectives for final decision
             - Export reports for documentation
