@@ -182,16 +182,21 @@ OCCUPATIONS = sorted([
 class UnderwritingAgent:
     def __init__(self, api_key):
         self.api_key = api_key
-        self.api_url = "https://api-inference.huggingface.co/models/mistralai/Mixtral-8x7B-Instruct-v0.1"
+        # Ensure model URL is correct for Text Generation Inference
+        self.api_url = "https://api-inference.huggingface.co/models/mistralai/Mixtral-8x7B-Instruct-v0.1" 
         self.headers = {"Authorization": f"Bearer {api_key}"}
-    
+
     def query_llm(self, prompt, max_tokens=500):
-        """Query Hugging Face LLM API"""
+        """Query Hugging Face LLM API with Mixtral-specific formatting and debug logging"""
         if not self.api_key or self.api_key == "":
+            # Streamlit sidebar already warns about this
             return None
-        
+
+        # 💡 FIX 1: Enforce Mixtral Instruct format
+        formatted_prompt = f"<s>[INST] {prompt} [/INST]"
+
         payload = {
-            "inputs": prompt,
+            "inputs": formatted_prompt,
             "parameters": {
                 "max_new_tokens": max_tokens,
                 "temperature": 0.7,
@@ -199,20 +204,33 @@ class UnderwritingAgent:
                 "return_full_text": False
             }
         }
-        
+
         try:
-            response = requests.post(self.api_url, headers=self.headers, json=payload, timeout=30)
+            response = requests.post(self.api_url, headers=self.headers, json=payload, timeout=45) # Increased timeout to 45s
+
             if response.status_code == 200:
                 result = response.json()
+                # 💡 FIX 2: Check for correct output structure and remove trailing Mixtral tokens
                 if isinstance(result, list) and len(result) > 0:
-                    return result[0].get('generated_text', '').strip()
-                return str(result)
-            else:
-                print(f"API Error - Status Code: {response.status_code}") 
-                print(f"API Error - Response: {response.text}") 
+                    generated_text = result[0].get('generated_text', '').strip()
+                    # Clean up common residual instruction tokens (Mixtral often adds </s>)
+                    return generated_text.replace("</s>", "").strip() 
+                
+                # Fallback if structure is unexpected but status is 200
+                st.warning(f"Unexpected 200 response structure: {str(result)}")
                 return None
+            
+            # 💡 DEBUG: Print detailed error for non-200 status codes
+            else:
+                error_message = response.text
+                st.error(f"LLM API Error (Status {response.status_code}): {error_message[:200]}...") # Show first 200 chars of error
+                return None
+            
+        except requests.exceptions.Timeout:
+            st.error("LLM API Timeout (45s). Model may be cold-starting or too busy.")
+            return None
         except Exception as e:
-            st.warning(f"API call failed: {str(e)}. Using Rule-based logic.")
+            st.warning(f"Network/API call failed: {str(e)}. Using Rule-based logic.")
             return None
 
 class DataSummarizationAgent(UnderwritingAgent):
