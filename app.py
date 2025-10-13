@@ -208,6 +208,8 @@ class UnderwritingAgent:
                     return result[0].get('generated_text', '').strip()
                 return str(result)
             else:
+                print(f"API Error - Status Code: {response.status_code}") 
+                print(f"API Error - Response: {response.text}") 
                 return None
         except Exception as e:
             st.warning(f"API call failed: {str(e)}. Using Rule-based logic.")
@@ -677,7 +679,7 @@ def display_analysis_results(results, mode_type):
         <p style="margin:0; white-space: pre-wrap;">{agent_outputs.get('recommendation', 'N/A')}</p>
     </div>
     """, unsafe_allow_html=True)
-    
+
     # Export options
     st.markdown("---")
     st.markdown("### 📥 Export Report")
