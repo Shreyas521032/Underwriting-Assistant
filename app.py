@@ -224,7 +224,7 @@ APPLICANT PROFILE:
 Provide a detailed professional summary with the following structure:
 
 **APPLICANT OVERVIEW:**
-[2-3 sentences providing general profile overview]
+[10 sentences providing general profile overview]
 
 **KEY RISK INDICATORS:**
 • Demographic Risk: [Analyze age and occupation factors]
@@ -233,7 +233,7 @@ Provide a detailed professional summary with the following structure:
 • Geographic Risk: [Analyze location factors]
 
 **INITIAL ASSESSMENT:**
-[1-2 sentences summarizing preliminary risk profile]
+[5 sentences summarizing preliminary risk profile]
 
 Format your response with clear bullet points and bold headers as shown above."""
 
@@ -300,7 +300,7 @@ class ClaimsAnalysisAgent(UnderwritingAgent):
 
 Profile: Applicant with no previous claims history.
 
-Provide a 2-3 sentence analysis focusing on the positive implications of a clean claims history."""
+Provide 10 sentences analysis focusing on the positive implications of a clean claims history."""
             return self.query_llm(prompt, max_tokens=200)
         
         total_claims = len(claims_history)
@@ -315,7 +315,7 @@ Claims Summary:
 - Types of Claims: {claim_types}
 - Claims Details: {json.dumps(claims_history, indent=2)}
 
-Provide a 2-3 sentence analysis focusing on frequency, severity, and any concerning patterns."""
+Provide 10 sentences analysis focusing on frequency, severity, and any concerning patterns."""
 
         return self.query_llm(prompt, max_tokens=200)
     
@@ -425,7 +425,7 @@ Provide:
 2. Specific recommendations for premium adjustments or policy conditions
 3. Any additional steps needed
 
-Keep response concise and actionable (3-4 sentences)."""
+Keep response concise and actionable (10 sentences)."""
 
         return self.query_llm(prompt, max_tokens=250)
     
