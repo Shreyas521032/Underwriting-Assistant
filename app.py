@@ -1195,7 +1195,7 @@ def main():
             st.markdown("""
             #### Fallback Mode Benefits
             - **Rule-Based:** Deterministic logic
-            - **No API Dependency:** Works offline
+            - **No API Dependency:** Works on rule-based system
             - **Fast Processing:** Immediate results
             - **Transparent:** Clear decision criteria
             - **Reliable:** Consistent scoring
