@@ -4,6 +4,9 @@ from datetime import datetime
 import pandas as pd
 import requests
 import time
+import os 
+from langchain_huggingface import HuggingFaceEndpoint, ChatHuggingFace
+from langchain.schema.messages import HumanMessage
 
 # Page config
 st.set_page_config(
@@ -110,6 +113,29 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
+@st.cache_resource
+def get_llm_client():
+    api_key = os.getenv("HUGGINGFACE_API_KEY")
+    if not api_key:
+        # Fallback will handle the case where the key is missing
+        return None 
+    
+    try:
+        # Use the same model/settings as your original request
+        llm = HuggingFaceEndpoint(
+            repo_id="mistralai/Mixtral-8x7B-Instruct-v0.1",
+            huggingfacehub_api_token=api_key,
+            temperature=0.7,
+            max_new_tokens=500,
+            # Add this parameter to reduce cold start issues/timeouts
+            client_kwargs={"timeout": 60} 
+        )
+        # Use ChatHuggingFace wrapper for automatic instruction formatting
+        return ChatHuggingFace(llm=llm)
+    except Exception as e:
+        st.warning(f"Failed to initialize LLM: {e}")
+        return None
+
 # Initialize session state
 if 'ai_analysis_results' not in st.session_state:
     st.session_state.ai_analysis_results = None
@@ -180,58 +206,23 @@ OCCUPATIONS = sorted([
 
 # AI Agent Class
 class UnderwritingAgent:
-    def __init__(self, api_key):
-        self.api_key = api_key
-        # Ensure model URL is correct for Text Generation Inference
-        self.api_url = "https://api-inference.huggingface.co/models/mistralai/Mixtral-8x7B-Instruct-v0.1" 
-        self.headers = {"Authorization": f"Bearer {api_key}"}
-
-    def query_llm(self, prompt, max_tokens=500):
-        """Query Hugging Face LLM API with Mixtral-specific formatting and debug logging"""
-        if not self.api_key or self.api_key == "":
-            # Streamlit sidebar already warns about this
+    def __init__(self):
+        self.chat_model = get_llm_client()
+    
+    def query_llm(self, prompt):
+        """Query LangChain LLM Client"""
+        if self.chat_model is None:
             return None
-
-        # 💡 FIX 1: Enforce Mixtral Instruct format
-        formatted_prompt = f"<s>[INST] {prompt} [/INST]"
-
-        payload = {
-            "inputs": formatted_prompt,
-            "parameters": {
-                "max_new_tokens": max_tokens,
-                "temperature": 0.7,
-                "top_p": 0.95,
-                "return_full_text": False
-            }
-        }
-
+        
         try:
-            response = requests.post(self.api_url, headers=self.headers, json=payload, timeout=45) # Increased timeout to 45s
-
-            if response.status_code == 200:
-                result = response.json()
-                # 💡 FIX 2: Check for correct output structure and remove trailing Mixtral tokens
-                if isinstance(result, list) and len(result) > 0:
-                    generated_text = result[0].get('generated_text', '').strip()
-                    # Clean up common residual instruction tokens (Mixtral often adds </s>)
-                    return generated_text.replace("</s>", "").strip() 
-                
-                # Fallback if structure is unexpected but status is 200
-                st.warning(f"Unexpected 200 response structure: {str(result)}")
-                return None
-            
-            # 💡 DEBUG: Print detailed error for non-200 status codes
-            else:
-                error_message = response.text
-                st.error(f"LLM API Error (Status {response.status_code}): {error_message[:200]}...") # Show first 200 chars of error
-                return None
-            
-        except requests.exceptions.Timeout:
-            st.error("LLM API Timeout (45s). Model may be cold-starting or too busy.")
-            return None
+            # LangChain handles the API call, Mixtral formatting, and token limits automatically
+            response = self.chat_model.invoke([HumanMessage(content=prompt)])
+            return response.content.strip()
         except Exception as e:
-            st.warning(f"Network/API call failed: {str(e)}. Using Rule-based logic.")
+            # We already log the setup error, this catches runtime errors
+            st.error(f"LLM runtime error: {str(e)}") 
             return None
+        
 
 class DataSummarizationAgent(UnderwritingAgent):
     def summarize_applicant(self, applicant_data):
@@ -263,7 +254,7 @@ Provide a detailed professional summary with the following structure:
 
 Format your response with clear bullet points and bold headers as shown above."""
 
-        return self.query_llm(prompt, max_tokens=500)
+        return self.query_llm(prompt)
     
     def fallback_summarize(self, applicant_data):
         """Fallback summarization using rule-based logic"""
@@ -327,7 +318,7 @@ class ClaimsAnalysisAgent(UnderwritingAgent):
 Profile: Applicant with no previous claims history.
 
 Provide 10 sentences analysis focusing on the positive implications of a clean claims history."""
-            return self.query_llm(prompt, max_tokens=200)
+            return self.query_llm(prompt)
         
         total_claims = len(claims_history)
         total_amount = sum([c['amount'] for c in claims_history])
@@ -343,7 +334,7 @@ Claims Summary:
 
 Provide 10 sentences analysis focusing on frequency, severity, and any concerning patterns."""
 
-        return self.query_llm(prompt, max_tokens=200)
+        return self.query_llm(prompt)
     
     def fallback_analyze_claims(self, claims_history):
         """Fallback claims analysis using rule-based logic"""
@@ -391,7 +382,7 @@ Driving Record: {external_reports['driving_record']}
 
 List the most significant risk factors in bullet points, each with a brief explanation."""
 
-        return self.query_llm(prompt, max_tokens=300)
+        return self.query_llm(prompt)
     
     def fallback_identify_risk_factors(self, applicant_data, claims_history, external_reports):
         """Fallback risk factor identification using rule-based logic"""
@@ -453,7 +444,7 @@ Provide:
 
 Keep response concise and actionable (10 sentences)."""
 
-        return self.query_llm(prompt, max_tokens=250)
+        return self.query_llm(prompt)
     
     def fallback_generate_recommendation(self, risk_score, risk_category):
         """Fallback recommendation using rule-based logic"""
