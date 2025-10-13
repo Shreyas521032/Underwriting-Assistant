@@ -262,7 +262,7 @@ Format your response with clear bullet points and bold headers as shown above.""
         occupation_risk = self._assess_occupation_risk(applicant_data['occupation'])
         health_risk = self._assess_health_risk(applicant_data['health_status'])
         
-        summary = f"""**APPLICANT OVERVIEW:**
+        summary = f"""<strong>APPLICANT OVERVIEW:</strong>
 {applicant_data['name']}, a {applicant_data['age']}-year-old {applicant_data['occupation']} from {applicant_data['location']}, is seeking ${applicant_data['coverage_amount']:,} in coverage. The applicant reports {applicant_data['health_status'].lower()} health status with lifestyle factors including {applicant_data['lifestyle_factors']}.
 
 **KEY RISK INDICATORS:**
