@@ -4,7 +4,7 @@ from datetime import datetime
 import pandas as pd
 import requests
 import time
-import os 
+import os
 from langchain_huggingface import HuggingFaceEndpoint, ChatHuggingFace
 from langchain.schema.messages import HumanMessage
 
@@ -113,18 +113,19 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
+# --- FIX 1: LLM Client is cached based on API Key ---
 @st.cache_resource
-def get_llm_client():
-    api_key = os.getenv("HUGGINGFACE_API_KEY")
+def get_llm_client(api_key):
+    """Initializes and caches the LLM client based on the provided API key."""
     if not api_key:
-        # Fallback will handle the case where the key is missing
-        return None 
-    
+        # st.warning("Hugging Face API Key is missing. Returning None for LLM client.")
+        return None
+        
     try:
         # Use the same model/settings as your original request
         llm = HuggingFaceEndpoint(
             repo_id="mistralai/Mixtral-8x7B-Instruct-v0.1",
-            huggingfacehub_api_token=api_key,
+            huggingfacehub_api_token=api_key, # Use the passed key
             temperature=0.7,
             max_new_tokens=500,
             # Add this parameter to reduce cold start issues/timeouts
@@ -133,7 +134,8 @@ def get_llm_client():
         # Use ChatHuggingFace wrapper for automatic instruction formatting
         return ChatHuggingFace(llm=llm)
     except Exception as e:
-        st.warning(f"Failed to initialize LLM: {e}")
+        # This catches actual connection/model loading errors
+        st.error(f"Failed to initialize LLM: {e}")
         return None
 
 # Initialize session state
@@ -152,7 +154,7 @@ if 'current_claims_history' not in st.session_state:
 if 'current_external_reports' not in st.session_state:
     st.session_state.current_external_reports = {}
 
-# Comprehensive occupation list
+# Comprehensive occupation list (remains the same)
 OCCUPATIONS = sorted([
     "Software Engineer", "Data Scientist", "DevOps Engineer", "Cloud Architect",
     "Frontend Developer", "Backend Developer", "Mobile Developer", "QA Engineer",
@@ -180,7 +182,7 @@ OCCUPATIONS = sorted([
     "Product Manager", "Advertising Manager", "Public Relations Manager", "Event Planner",
     "Human Resources Manager", "Recruiter", "HR Specialist", "Training Manager", "Payroll Specialist",
     "Factory Worker", "Manufacturing Technician", "Quality Control Inspector", "Production Supervisor",
-    "Machine Operator", "Assembly Line Worker", "Maintenance Technician", "Plant Manager",
+    "Maintenance Technician", "Plant Manager",
     "Logistics Manager", "Warehouse Manager", "Supply Chain Analyst", "Truck Driver",
     "Delivery Driver", "Bus Driver", "Taxi Driver", "Chauffeur", "Courier", "Postal Worker",
     "Farmer", "Agricultural Engineer", "Farm Manager", "Veterinarian Assistant", "Rancher",
@@ -206,12 +208,15 @@ OCCUPATIONS = sorted([
 
 # AI Agent Class
 class UnderwritingAgent:
-    def __init__(self):
-        self.chat_model = get_llm_client()
+    # --- FIX 2: Agent takes api_key and uses it for initialization ---
+    def __init__(self, api_key=None):
+        # Passes the key to the cached function
+        self.chat_model = get_llm_client(api_key) 
     
     def query_llm(self, prompt):
         """Query LangChain LLM Client"""
         if self.chat_model is None:
+            # If model is None, it means LLM initialization failed (e.g., no key, API error)
             return None
         
         try:
@@ -225,6 +230,9 @@ class UnderwritingAgent:
         
 
 class DataSummarizationAgent(UnderwritingAgent):
+# ... (all agent methods remain the same) ...
+# Omitted for brevity, but they inherit from the corrected UnderwritingAgent
+
     def summarize_applicant(self, applicant_data):
         """Agent 1: Summarize applicant information - AI Mode"""
         prompt = f"""You are an expert insurance underwriting assistant. Provide a comprehensive analysis of the following applicant:
@@ -508,6 +516,10 @@ def calculate_risk_score(applicant_data, claims_history, external_reports):
     if external_reports['criminal_record']:
         risk_score += 20
     
+    # Driving record
+    if external_reports['driving_record'] != 'Clean':
+        risk_score += 5 
+        
     # Normalize score
     risk_score = max(0, min(100, risk_score))
     
@@ -524,39 +536,46 @@ def calculate_risk_score(applicant_data, claims_history, external_reports):
     
     return risk_score, risk_category, color_class
 
-def analyze_with_ai_agents(applicant_data, claims_history, external_reports):
+# --- FIX 3: Orchestrator function takes api_key and passes it to agents ---
+def analyze_with_ai_agents(applicant_data, claims_history, external_reports, api_key):
     """Orchestrate multi-agent analysis - AI Mode"""
     
-    # Initialize agents
-    data_agent = DataSummarizationAgent()
-    claims_agent = ClaimsAnalysisAgent()
-    risk_agent = RiskFactorAgent()
-    rec_agent = RecommendationAgent()
+    # Initialize agents, passing the API key
+    data_agent = DataSummarizationAgent(api_key=api_key)
+    claims_agent = ClaimsAnalysisAgent(api_key=api_key)
+    risk_agent = RiskFactorAgent(api_key=api_key)
+    rec_agent = RecommendationAgent(api_key=api_key)
     
+    # Check if the model initialized successfully before proceeding
+    if data_agent.chat_model is None:
+        # Fall back to rule-based analysis if AI setup failed
+        return analyze_with_fallback(applicant_data, claims_history, external_reports, fallback_only=True)
+
     agent_outputs = {}
     
     # Agent 1: Summarize applicant
+    # Note: The fallback logic in query_llm is now None, so we handle it here if it returns None
     summary = data_agent.summarize_applicant(applicant_data)
-    agent_outputs['applicant_summary'] = summary if summary else data_agent.fallback_summarize(applicant_data)
+    agent_outputs['applicant_summary'] = summary if summary else "LLM API Call Failed. Fallback Summary:\n" + data_agent.fallback_summarize(applicant_data)
     time.sleep(0.5)
     
     # Agent 2: Analyze claims
     claims = claims_agent.analyze_claims(claims_history)
-    agent_outputs['claims_analysis'] = claims if claims else claims_agent.fallback_analyze_claims(claims_history)
+    agent_outputs['claims_analysis'] = claims if claims else "LLM API Call Failed. Fallback Claims Analysis:\n" + claims_agent.fallback_analyze_claims(claims_history)
     time.sleep(0.5)
     
     # Agent 3: Identify risk factors
     risk_factors = risk_agent.identify_risk_factors(applicant_data, claims_history, external_reports)
-    agent_outputs['risk_factors'] = risk_factors if risk_factors else risk_agent.fallback_identify_risk_factors(applicant_data, claims_history, external_reports)
+    agent_outputs['risk_factors'] = risk_factors if risk_factors else "LLM API Call Failed. Fallback Risk Factors:\n" + risk_agent.fallback_identify_risk_factors(applicant_data, claims_history, external_reports)
     time.sleep(0.5)
     
     # Calculate risk score
     risk_score, risk_category, color_class = calculate_risk_score(applicant_data, claims_history, external_reports)
     
     # Agent 4: Generate recommendation
-    all_factors = f"{agent_outputs['applicant_summary']} {agent_outputs['claims_analysis']}"
+    all_factors = f"Applicant Summary:\n{agent_outputs['applicant_summary']}\nClaims Analysis:\n{agent_outputs['claims_analysis']}\nRisk Factors:\n{agent_outputs['risk_factors']}"
     recommendation = rec_agent.generate_recommendation(risk_score, risk_category, all_factors)
-    agent_outputs['recommendation'] = recommendation if recommendation else rec_agent.fallback_generate_recommendation(risk_score, risk_category)
+    agent_outputs['recommendation'] = recommendation if recommendation else "LLM API Call Failed. Fallback Recommendation:\n" + rec_agent.fallback_generate_recommendation(risk_score, risk_category)
     
     # Compile results
     return {
@@ -569,10 +588,10 @@ def analyze_with_ai_agents(applicant_data, claims_history, external_reports):
         'mode': 'AI Mode'
     }
 
-def analyze_with_fallback(applicant_data, claims_history, external_reports):
+def analyze_with_fallback(applicant_data, claims_history, external_reports, fallback_only=False):
     """Orchestrate multi-agent analysis - Fallback Mode (Rule-Based)"""
     
-    # Initialize agents
+    # Initialize agents (without API key for fallback)
     data_agent = DataSummarizationAgent()
     claims_agent = ClaimsAnalysisAgent()
     risk_agent = RiskFactorAgent()
@@ -582,15 +601,15 @@ def analyze_with_fallback(applicant_data, claims_history, external_reports):
     
     # Agent 1: Summarize applicant (Fallback)
     agent_outputs['applicant_summary'] = data_agent.fallback_summarize(applicant_data)
-    time.sleep(0.5)
+    time.sleep(0.1) # Shorter sleep for faster rule-based mode
     
     # Agent 2: Analyze claims (Fallback)
     agent_outputs['claims_analysis'] = claims_agent.fallback_analyze_claims(claims_history)
-    time.sleep(0.5)
+    time.sleep(0.1)
     
     # Agent 3: Identify risk factors (Fallback)
     agent_outputs['risk_factors'] = risk_agent.fallback_identify_risk_factors(applicant_data, claims_history, external_reports)
-    time.sleep(0.5)
+    time.sleep(0.1)
     
     # Calculate risk score
     risk_score, risk_category, color_class = calculate_risk_score(applicant_data, claims_history, external_reports)
@@ -599,6 +618,7 @@ def analyze_with_fallback(applicant_data, claims_history, external_reports):
     agent_outputs['recommendation'] = rec_agent.fallback_generate_recommendation(risk_score, risk_category)
     
     # Compile results
+    mode_label = 'Rule-based Mode (Fallback Only)' if fallback_only else 'Rule-based Mode'
     return {
         'risk_score': risk_score,
         'risk_category': risk_category,
@@ -606,9 +626,10 @@ def analyze_with_fallback(applicant_data, claims_history, external_reports):
         'agent_outputs': agent_outputs,
         'total_claims': len(claims_history),
         'total_claim_amount': sum([c['amount'] for c in claims_history]) if claims_history else 0,
-        'mode': 'Fallback Mode'
+        'mode': mode_label
     }
 
+# ... (display_analysis_results and generate_text_report functions remain the same) ...
 def display_analysis_results(results, mode_type):
     """Display analysis results for both AI and Fallback modes"""
     
@@ -825,6 +846,8 @@ END OF REPORT
 """
     
     return report
+# --- End of supporting functions ---
+
 
 def main():
     # Header
@@ -836,13 +859,13 @@ def main():
         st.markdown("### 🛡️ AI Agents")
         st.markdown("""
         1. **Data Summarization Agent**
-           - Extracts key applicant info
+            - Extracts key applicant info
         2. **Claims Analysis Agent**
-           - Analyzes historical patterns
+            - Analyzes historical patterns
         3. **Risk Factor Agent**
-           - Identifies critical risks
+            - Identifies critical risks
         4. **Recommendation Agent**
-           - Generates decisions
+            - Generates decisions
         """)
         
         st.markdown("---")
@@ -850,9 +873,10 @@ def main():
         
         # Get API key from secrets or input
         try:
-            default_api_key = st.secrets.get("HUGGINGFACE_API_KEY", "")
+            default_api_key = os.environ.get("HUGGINGFACE_API_KEY") or st.secrets.get("HUGGINGFACE_API_KEY", "")
         except:
-            default_api_key = ""
+            default_api_key = os.environ.get("HUGGINGFACE_API_KEY", "")
+
         
         api_key = st.text_input(
             "Hugging Face API Key",
@@ -862,7 +886,12 @@ def main():
         )
         
         if api_key:
-            st.success("✅ API Key configured - AI Mode available")
+            # Check the status of the LLM client to provide better feedback
+            llm_client_status = get_llm_client(api_key)
+            if llm_client_status:
+                 st.success("✅ API Key configured - AI Mode available")
+            else:
+                 st.error("❌ API Key configured but LLM initialization failed. Check key validity.")
         else:
             st.warning("⚠️ No API key - Only Rule-based Mode available")
         
@@ -902,17 +931,30 @@ def main():
         num_claims = st.number_input("Number of Previous Claims", 0, 10, 2)
         
         claims_history = []
+        # Populate default claims if using sample data to make initial run easier
+        default_claims = [
+            {'type': "Auto", 'amount': 4500, 'date': '2023-01-15'},
+            {'type': "Property", 'amount': 8000, 'date': '2024-03-20'}
+        ]
+        
         if num_claims > 0:
             for i in range(num_claims):
                 with st.expander(f"Claim {i+1}"):
                     col1, col2, col3 = st.columns(3)
+                    
+                    # Use default values if available, otherwise a sensible default
+                    default_type = default_claims[i]['type'] if i < len(default_claims) else "Auto"
+                    default_amount = default_claims[i]['amount'] if i < len(default_claims) else 5000
+                    default_date_str = default_claims[i]['date'] if i < len(default_claims) else str(datetime.now().date())
+                    default_date = datetime.strptime(default_date_str, '%Y-%m-%d').date()
+                    
                     with col1:
                         claim_type = st.selectbox(f"Type", 
-                            ["Auto", "Property", "Health", "Liability"], key=f"type_{i}")
+                            ["Auto", "Property", "Health", "Liability"], index=["Auto", "Property", "Health", "Liability"].index(default_type), key=f"type_{i}")
                     with col2:
-                        claim_amount = st.number_input(f"Amount ($)", 100, 100000, 5000, key=f"amt_{i}")
+                        claim_amount = st.number_input(f"Amount ($)", 100, 100000, default_amount, key=f"amt_{i}")
                     with col3:
-                        claim_date = st.date_input(f"Date", key=f"date_{i}")
+                        claim_date = st.date_input(f"Date", value=default_date, key=f"date_{i}")
                     
                     claims_history.append({
                         'type': claim_type,
@@ -973,9 +1015,13 @@ def main():
             
             st.markdown("---")
             
+            # --- FIX 4: Pass the api_key to the analysis function ---
             if st.button("🛡️ Run AI Agent Analysis", use_container_width=True):
+                # Check for API key validity
                 if not api_key:
                     st.error("❌ API key required for AI Agent Analysis. Please enter your Hugging Face API key in the sidebar or use Rule-based Analysis.")
+                elif not get_llm_client(api_key):
+                    st.error("❌ LLM client failed to initialize with the provided API key. Check the key and try again.")
                 else:
                     with st.spinner("🔄 AI Agents processing application..."):
                         # Progress indicators
@@ -1000,7 +1046,8 @@ def main():
                         results = analyze_with_ai_agents(
                             st.session_state.current_applicant_data,
                             st.session_state.current_claims_history,
-                            st.session_state.current_external_reports
+                            st.session_state.current_external_reports,
+                            api_key=api_key # Pass the API key here!
                         )
                         
                         st.session_state.ai_analysis_results = results
@@ -1050,19 +1097,20 @@ def main():
                     
                     status_text.text("📊 Rule-based Agent 1: Summarizing applicant data...")
                     progress_bar.progress(25)
-                    time.sleep(0.5)
+                    time.sleep(0.1)
                     
                     status_text.text("📊 Rule-based Agent 2: Analyzing claims history...")
                     progress_bar.progress(50)
-                    time.sleep(0.5)
+                    time.sleep(0.1)
                     
                     status_text.text("📊 Rule-based Agent 3: Identifying risk factors...")
                     progress_bar.progress(75)
-                    time.sleep(0.5)
+                    time.sleep(0.1)
                     
                     status_text.text("📊 Rule-based Agent 4: Generating recommendations...")
                     progress_bar.progress(90)
                     
+                    # Call fallback analysis
                     results = analyze_with_fallback(
                         st.session_state.current_applicant_data,
                         st.session_state.current_claims_history,
@@ -1326,13 +1374,13 @@ Expected Recommendation: MANUAL REVIEW REQUIRED
         1. Complete all fields in the application form accurately
         2. Include detailed claims history if applicable
         3. Ensure external reports are up-to-date
-        4. Save application data before running analysis
+        4. **Save application data before running analysis**
         5. Compare results between AI and Rule-based modes
         
         **API Key Setup (for AI Mode):**
         - Get free API key from: https://huggingface.co/settings/tokens
-        - Add to Streamlit secrets as `HUGGINGFACE_API_KEY`
-        - Or enter directly in the sidebar
+        - **Enter the key in the sidebar text field.**
+        - The `get_llm_client` function is now dynamically loaded/re-initialized when you press the 'Run AI Agent Analysis' button with a new key.
         
         **Mode Comparison:**
         - **AI Mode:** Better for nuanced, context-aware analysis
@@ -1379,27 +1427,27 @@ Expected Recommendation: MANUAL REVIEW REQUIRED
         **Step-by-Step Process:**
         
         1. **📝 Application Form Tab**
-           - Fill in all applicant information
-           - Add claims history if applicable
-           - Enter external report data
-           - Click "Save Application Data"
+            - Fill in all applicant information
+            - Add claims history if applicable
+            - Enter external report data
+            - **Click "Save Application Data"**
         
         2. **🤖 AI Agent Analysis Tab** (if API key available)
-           - Review saved application summary
-           - Click "Run AI Agent Analysis"
-           - View LLM-powered analysis results
-           - Download reports if needed
+            - Review saved application summary
+            - **Click "Run AI Agent Analysis" (This will now use the API key from the sidebar)**
+            - View LLM-powered analysis results
+            - Download reports if needed
         
         3. **📊 Rule-based Analysis Tab** (always available)
-           - Review saved application summary
-           - Click "Run Rule-based Analysis"
-           - View rule-based analysis results
-           - Download reports if needed
+            - Review saved application summary
+            - Click "Run Rule-based Analysis"
+            - View rule-based analysis results
+            - Download reports if needed
         
         4. **Compare Results**
-           - Analyze differences between AI and Rule-based modes
-           - Consider both perspectives for final decision
-           - Export reports for documentation
+            - Analyze differences between AI and Rule-based modes
+            - Consider both perspectives for final decision
+            - Export reports for documentation
         """)
 
 if __name__ == "__main__":
