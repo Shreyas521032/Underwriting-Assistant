@@ -225,7 +225,6 @@ class UnderwritingAgent:
             return response.content.strip()
         except Exception as e:
             # We already log the setup error, this catches runtime errors
-            st.error(f"LLM runtime error: {str(e)}") 
             return None
         
 
