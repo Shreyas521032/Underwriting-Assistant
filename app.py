@@ -524,14 +524,14 @@ def calculate_risk_score(applicant_data, claims_history, external_reports):
     
     return risk_score, risk_category, color_class
 
-def analyze_with_ai_agents(applicant_data, claims_history, external_reports, api_key):
+def analyze_with_ai_agents(applicant_data, claims_history, external_reports):
     """Orchestrate multi-agent analysis - AI Mode"""
     
     # Initialize agents
-    data_agent = DataSummarizationAgent(api_key)
-    claims_agent = ClaimsAnalysisAgent(api_key)
-    risk_agent = RiskFactorAgent(api_key)
-    rec_agent = RecommendationAgent(api_key)
+    data_agent = DataSummarizationAgent()
+    claims_agent = ClaimsAnalysisAgent()
+    risk_agent = RiskFactorAgent()
+    rec_agent = RecommendationAgent()
     
     agent_outputs = {}
     
@@ -573,10 +573,10 @@ def analyze_with_fallback(applicant_data, claims_history, external_reports):
     """Orchestrate multi-agent analysis - Fallback Mode (Rule-Based)"""
     
     # Initialize agents
-    data_agent = DataSummarizationAgent("")
-    claims_agent = ClaimsAnalysisAgent("")
-    risk_agent = RiskFactorAgent("")
-    rec_agent = RecommendationAgent("")
+    data_agent = DataSummarizationAgent()
+    claims_agent = ClaimsAnalysisAgent()
+    risk_agent = RiskFactorAgent()
+    rec_agent = RecommendationAgent()
     
     agent_outputs = {}
     
@@ -1000,8 +1000,7 @@ def main():
                         results = analyze_with_ai_agents(
                             st.session_state.current_applicant_data,
                             st.session_state.current_claims_history,
-                            st.session_state.current_external_reports,
-                            api_key
+                            st.session_state.current_external_reports
                         )
                         
                         st.session_state.ai_analysis_results = results
