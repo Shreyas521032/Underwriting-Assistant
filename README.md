@@ -4,6 +4,8 @@ The **Underwriting Assistant AI** is a Streamlit application designed to streaml
 
 This tool helps underwriters quickly assess an applicant's risk profile based on demographic data, claims history, health factors, and external reports, generating an actionable recommendation.
 
+🔗 **Live Deployed Project:** [https://shaurya-underwriting-assistant.streamlit.app](https://shaurya-underwriting-assistant.streamlit.app/)
+
 ---
 
 ## ✨ Features
