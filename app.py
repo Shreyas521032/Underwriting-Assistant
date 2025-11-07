@@ -6,7 +6,7 @@ import requests
 import time
 import os
 from langchain_huggingface import HuggingFaceEndpoint, ChatHuggingFace
-from langchain.schema.messages import HumanMessage
+from langchain_core.messages import HumanMessage
 
 st.set_page_config(
     page_title="Underwriting Assistant AI",
